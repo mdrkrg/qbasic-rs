@@ -67,13 +67,20 @@ void MainWindow::setupUI() {
     QHBoxLayout *buttonLayout = new QHBoxLayout();
     m_btnLoad = new QPushButton("LOAD", this);
     m_btnRun = new QPushButton("RUN", this);
+    m_btnPauseContinueToggle = new QPushButton("CONTINUE", this);
     m_btnStep = new QPushButton("STEP", this);
     m_btnClear = new QPushButton("CLEAR", this);
+    m_btnReset = new QPushButton("RESET", this);
+
+    m_btnPauseContinueToggle->setEnabled(false);
+    m_btnReset->setEnabled(false);
 
     buttonLayout->addWidget(m_btnLoad);
     buttonLayout->addWidget(m_btnRun);
+    buttonLayout->addWidget(m_btnPauseContinueToggle);
     buttonLayout->addWidget(m_btnStep);
     buttonLayout->addWidget(m_btnClear);
+    buttonLayout->addWidget(m_btnReset);
     buttonLayout->addStretch();
 
     mainLayout->addLayout(buttonLayout);
@@ -109,10 +116,14 @@ void MainWindow::connectSignals() {
   // Buttons
   {
     connect(m_btnRun, &QPushButton::clicked, this, &MainWindow::onRunClicked);
+    connect(m_btnPauseContinueToggle, &QPushButton::clicked, this,
+            &MainWindow::onToggleClicked);
     connect(m_btnStep, &QPushButton::clicked, this, &MainWindow::onStepClicked);
     connect(m_btnClear, &QPushButton::clicked, this,
             &MainWindow::onClearClicked);
     connect(m_btnLoad, &QPushButton::clicked, this, &MainWindow::onLoadClicked);
+    connect(m_btnReset, &QPushButton::clicked, this,
+            &MainWindow::onResetClicked);
   }
 
   // Interpreter signals
@@ -152,8 +163,15 @@ void MainWindow::onCommandLineEntered() {
       m_waitingForInput = false;
       m_cmdLineEdit->setPlaceholderText("Enter QBasic command or statement...");
       m_statusLabel->setText("Input provided for " + m_inputVarName);
-      // WARN: we need a clean distinction between run and step
-      m_interpreter->run();
+
+      if (m_autoContinue) {
+        // RUN mode, resume
+        m_interpreter->run();
+      } else {
+        // STEP mode
+        m_interpreter->step();
+      }
+
     } else {
       m_statusLabel->setText("Failed to provide input for " + m_inputVarName);
     }
@@ -169,12 +187,35 @@ void MainWindow::onCommandLineEntered() {
 }
 
 void MainWindow::onRunClicked() {
+  m_autoContinue = true;
   // Reset first
   m_interpreter->reset();
   m_interpreter->run();
 }
 
-void MainWindow::onStepClicked() { m_interpreter->step(); }
+void MainWindow::onToggleClicked() {
+  if (m_interpreter->isRunning()) {
+    // Toggle to pause
+    m_autoContinue = false;
+    m_interpreter->stop();
+    m_btnPauseContinueToggle->setText("CONTINUE");
+  } else {
+    // Toggle to continue / resume
+    m_autoContinue = true;
+    m_interpreter->run();
+    m_btnPauseContinueToggle->setText("PAUSE");
+  }
+}
+
+void MainWindow::onStepClicked() {
+  m_autoContinue = false;
+  m_interpreter->step();
+}
+
+void MainWindow::onResetClicked() {
+  m_autoContinue = false;
+  m_interpreter->reset();
+}
 
 void MainWindow::onClearClicked() {
   m_interpreter->clear();
@@ -233,14 +274,31 @@ void MainWindow::onStateChanged() {
       m_interpreter->getState() == qbasic_rs::InterpreterState::Ready;
   bool isWaitingForInput =
       m_interpreter->getState() == qbasic_rs::InterpreterState::WaitingForInput;
+  bool canContinue = not isRunning and (isReady or isWaitingForInput);
+
   m_btnRun->setEnabled(canEdit and not isRunning);
   m_btnStep->setEnabled(isReady and not isRunning);
   m_btnClear->setEnabled(canEdit and not isRunning);
   m_btnLoad->setEnabled(canEdit and not isRunning);
+  m_btnReset->setEnabled(not isRunning and
+                         not m_interpreter->getProgramLines().empty());
   m_cmdLineEdit->setEnabled((canEdit and not isRunning) or m_waitingForInput);
+
+  // Update toggle button
+  if (isRunning) {
+    m_btnPauseContinueToggle->setText("PAUSE");
+    m_btnPauseContinueToggle->setEnabled(true);
+  } else if (canContinue) {
+    m_btnPauseContinueToggle->setText("CONTINUE");
+    m_btnPauseContinueToggle->setEnabled(true);
+  } else {
+    m_btnPauseContinueToggle->setText("CONTINUE");
+    m_btnPauseContinueToggle->setEnabled(false);
+  }
 }
 
 void MainWindow::onExecutionFinished() {
+  m_autoContinue = false;
   m_statusLabel->setText("Execution finished");
 }
 

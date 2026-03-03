@@ -17,9 +17,11 @@ public:
 private slots:
   void onCommandLineEntered();
   void onRunClicked();
+  void onToggleClicked();
   void onStepClicked();
   void onClearClicked();
   void onLoadClicked();
+  void onResetClicked();
 
   void onOutputReceived(const QString &text);
   void onErrorOccurred(const QString &error);
@@ -43,8 +45,10 @@ private:
   QTextBrowser *m_treeDisplay = nullptr;
   QPushButton *m_btnLoad = nullptr;
   QPushButton *m_btnRun = nullptr;
+  QPushButton *m_btnPauseContinueToggle = nullptr;
   QPushButton *m_btnStep = nullptr;
   QPushButton *m_btnClear = nullptr;
+  QPushButton *m_btnReset = nullptr;
   QLineEdit *m_cmdLineEdit = nullptr;
   QLabel *m_statusLabel = nullptr;
 
@@ -54,4 +58,7 @@ private:
   // State for INPUT handling
   bool m_waitingForInput = false;
   QString m_inputVarName;
+
+  // Execution mode tracking
+  bool m_autoContinue = false;
 };
