@@ -133,7 +133,22 @@ bool QBasicInterpreter::processInput(const QString &input) noexcept {
       if (tokens.empty()) {
         return false;
       }
-      app.parse(tokens);
+
+      // Convert tokens to argc/argv format for parsing
+      const auto &argv_vec = [&tokens] {
+        std::vector<const char *> argv_vec{};
+        argv_vec.push_back("qbasic"); // program name
+        for (const auto &token : tokens) {
+          argv_vec.push_back(token.c_str());
+        }
+        return argv_vec;
+      }();
+
+      try {
+        app.parse(argv_vec.size(), argv_vec.data());
+      } catch (const CLI::ParseError &e) {
+        throw;
+      }
 
       // Check if a subcommand was executed
       if (app.got_subcommand(run_cmd) || app.got_subcommand(clear_cmd) ||
