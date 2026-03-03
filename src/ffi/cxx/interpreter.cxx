@@ -101,7 +101,6 @@ bool QBasicInterpreter::processInput(const QString &input) noexcept {
     load_cmd->add_option("filename", filename, "File to load")->required(false);
     load_cmd->callback([this, &filename, &command_handled, &command_result]() {
       if (filename.empty()) {
-        // TODO: Show file selector in UI and calls loadFile()
         emit loadFileRequested();
         command_handled = true;
         command_result = true;
@@ -144,7 +143,7 @@ bool QBasicInterpreter::processInput(const QString &input) noexcept {
       }
     }
   } catch (...) {
-    // Fall throught
+    // Fall through
   }
 
   // Not command

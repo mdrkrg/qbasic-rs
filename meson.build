@@ -24,7 +24,7 @@ dependencies = [
   dependency('CLI11', required: true),
 ]
 
-moc_files = qt.compile_moc(
+moc_interpreter_files = qt.compile_moc(
   sources: [
     'src/ffi/cxx/interpreter.cxx',
   ],
@@ -33,12 +33,20 @@ moc_files = qt.compile_moc(
   ],
 )
 
+moc_ui_files = qt.compile_moc(
+  headers: [
+    'src/ui/main_window.hxx',
+  ],
+)
+
 executable(
   'qbasic',
   [
     'src/ui/main.cxx',
+    'src/ui/main_window.cxx',
     'src/ffi/cxx/interpreter.cxx',
-    moc_files,
+    moc_interpreter_files,
+    moc_ui_files,
   ],
   dependencies: dependencies,
   include_directories: include_dirs,
@@ -62,7 +70,7 @@ test_executable = executable(
     'tests/cxx/test_interpreter.cxx',
     'src/ffi/cxx/interpreter.cxx',
     test_moc_files,
-    moc_files,
+    moc_interpreter_files,
   ],
   dependencies: dependencies,
   include_directories: include_dirs,
