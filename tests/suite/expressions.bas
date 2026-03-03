@@ -1,0 +1,34 @@
+10 REM Complex expressions with parentheses
+20 LET A = 1
+30 LET B = 2
+40 LET C = 3
+50 LET D = 4
+60 LET E = 5
+70 ' Simple arithmetic
+80 LET RESULT1 = A + B * C
+90 LET RESULT2 = (A + B) * C
+100 LET RESULT3 = A * B + C * D
+110 LET RESULT4 = (A * B) + (C * D)
+120 LET RESULT5 = A ** B + C ** D
+130 LET RESULT6 = (A + B) ** C
+140 ' With MOD operator
+150 LET RESULT7 = (A + B * C) MOD D
+160 LET RESULT8 = A MOD B + C MOD D
+170 PRINT "Results of complex expressions"
+180 PRINT "A + B * C = "
+190 PRINT RESULT1
+200 PRINT "(A + B) * C = "
+210 PRINT RESULT2
+220 PRINT "A * B + C * D = "
+230 PRINT RESULT3
+240 PRINT "(A * B) + (C * D) = "
+250 PRINT RESULT4
+260 PRINT "A ** B + C ** D = "
+270 PRINT RESULT5
+280 PRINT "(A + B) ** C = "
+290 PRINT RESULT6
+300 PRINT "(A + B * C) MOD D = "
+310 PRINT RESULT7
+320 PRINT "A MOD B + C MOD D = "
+330 PRINT RESULT8
+340 END

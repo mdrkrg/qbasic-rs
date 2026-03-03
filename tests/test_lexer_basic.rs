@@ -1,5 +1,5 @@
 #[cfg(test)]
-mod tests {
+mod lexer_basic {
     use qbasic_rs::lexer::*;
     use qbasic_rs::token::*;
 

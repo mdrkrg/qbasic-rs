@@ -1,0 +1,23 @@
+10 REM Simple arithmetic operations
+20 LET A = 10
+30 LET B = 5
+40 LET C = A + B
+50 LET D = A - B
+60 LET E = A * B
+70 LET F = A / B
+80 LET G = A ** B
+90 LET H = A MOD B
+100 PRINT "Results"
+110 PRINT "A + B = "
+120 PRINT C
+130 PRINT "A - B = "
+140 PRINT D
+150 PRINT "A * B = "
+160 PRINT E
+170 PRINT "A / B = "
+180 PRINT F
+190 PRINT "A ** B = "
+200 PRINT G
+210 PRINT "A MOD B = "
+220 PRINT H
+230 END
