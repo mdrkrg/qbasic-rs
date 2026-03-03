@@ -84,9 +84,6 @@ fn test_execution_count_tracking() {
     assert_eq!(stats.get(&10).unwrap().if_false_count, 0);
 
     // Execute second line (LET x = 5)
-    // Note: Assign now auto-continues, so we need to manually step again
-    // Actually, after PRINT, we need to call next() to continue
-    interpreter.next(); // Continue after PRINT
     interpreter.step(); // Execute LET x = 5
     let stats = interpreter.line_stats();
     assert_eq!(stats.len(), 2);
@@ -163,7 +160,6 @@ fn test_reset_statistics() {
 
     // Execute some lines
     interpreter.step(); // Line 10
-    interpreter.next(); // Continue
     interpreter.step(); // Line 20
     interpreter.step(); // Line 30
 
@@ -297,7 +293,6 @@ fn test_variable_use_counts_multiple_in_expression() {
     interpreter.step();
     // Execute PRINT x * x + x
     interpreter.step();
-    interpreter.next(); // Continue after output
 
     // Check variable usage counts
     {
@@ -358,10 +353,8 @@ fn test_variable_use_counts() {
     interpreter.step();
     // Execute PRINT x (uses x once)
     interpreter.step();
-    interpreter.next(); // Continue after output
     // Execute PRINT x + y * 2 (uses x once, y once)
     interpreter.step();
-    interpreter.next(); // Continue after output
 
     // Check variable usage counts
     {
@@ -429,7 +422,6 @@ fn test_statistics_reset_during_execution() {
 
     // Execute first line
     interpreter.step(); // Line 10
-    interpreter.next(); // Continue after output
 
     // Check statistics
     let stats = interpreter.line_stats();
@@ -445,7 +437,6 @@ fn test_statistics_reset_during_execution() {
 
     // Execute second line
     interpreter.step(); // Line 20
-    interpreter.next(); // Continue after output
 
     // Check fresh statistics
     let stats = interpreter.line_stats();

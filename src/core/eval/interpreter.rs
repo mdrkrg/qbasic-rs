@@ -81,8 +81,8 @@ impl Interpreter {
         self.events.has_events()
     }
 
-    /// Go to next line after output
-    pub fn next(&mut self) {
+    /// Go to next line
+    fn next(&mut self) {
         self.handle_action(Action::Continue);
     }
 
@@ -166,7 +166,7 @@ impl Interpreter {
             }
             Action::Output(text) => {
                 self.events.push(InterpreterEvent::Output(text));
-                // UI should resume manually calling step() after output
+                self.next();
             }
             Action::Input(name) => {
                 self.state = InterpreterState::WaitingForInput(name.clone());
@@ -174,7 +174,7 @@ impl Interpreter {
             }
             Action::Assign(name, value) => {
                 self.context.variables.insert(name, value);
-                self.handle_action(Action::Continue);
+                self.next();
             }
             Action::End => {
                 self.state = InterpreterState::Finished;
@@ -224,13 +224,11 @@ impl Interpreter {
             self.step();
             // Auto continue when output
             let events = self.take_events();
-            let mut should_continue = false;
 
             for event in events {
                 match event {
                     InterpreterEvent::Output(text) => {
                         println!("{}", text);
-                        should_continue = true;
                     }
                     InterpreterEvent::Input(_) => {
                         // Skip input when testing
@@ -239,11 +237,6 @@ impl Interpreter {
                     _ => (),
                 }
             }
-
-            if should_continue {
-                // Auto continue after output for testing
-                self.handle_action(Action::Continue);
-            }
         }
     }
 
@@ -251,13 +244,11 @@ impl Interpreter {
         while self.state == InterpreterState::Ready {
             self.step();
             let events = self.take_events();
-            let mut should_continue = false;
 
             for event in events {
                 match event {
                     InterpreterEvent::Output(text) => {
                         println!("{}", text);
-                        should_continue = true;
                     }
                     InterpreterEvent::Input(_) => {
                         use std::str::FromStr;
@@ -280,10 +271,6 @@ impl Interpreter {
                         // Ignore other events in run mode
                     }
                 }
-            }
-
-            if should_continue {
-                self.handle_action(Action::Continue);
             }
         }
     }
