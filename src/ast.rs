@@ -40,6 +40,7 @@ pub enum LiteralValue {
     Integer(u32),
     Number(f64),
     String(String),
+    None, // for printing a new line
 }
 
 /// A QBasic statement

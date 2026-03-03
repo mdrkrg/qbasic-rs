@@ -1,6 +1,6 @@
 /// The parser for QBasic. It should be input a sequence of Token and output a sequence of Line.
 use crate::{
-    ast::{Expr, Line, Stmt},
+    ast::{Expr, Line, LiteralValue, Stmt},
     token::{Keyword, Token},
 };
 use anyhow::{Result, bail};
@@ -50,7 +50,18 @@ impl Parser {
     }
 
     fn parse_let(&mut self) -> Result<Stmt> {
-        todo!()
+        let name = match self.advance() {
+            Some(Token::Identifier(name)) => name,
+            Some(token) => bail!("Expected identifier, got {token}"),
+            None => bail!("Unexpected EOF"),
+        };
+        match self.advance() {
+            Some(Token::Equal) => (),
+            Some(token) => bail!("Expected assignment, got {token}"),
+            None => bail!("Unexpected EOF"),
+        };
+        let expr = self.expression()?;
+        Ok(Stmt::Let { name, expr })
     }
 
     fn parse_goto(&mut self) -> Result<Stmt> {
@@ -63,10 +74,30 @@ impl Parser {
     }
 
     fn parse_if(&mut self) -> Result<Stmt> {
-        todo!()
+        let conditional = self.conditional()?;
+        match self.advance() {
+            Some(Token::Keyword(Keyword::Then)) => (),
+            Some(token) => bail!("Expected THEN, got {token}"),
+            None => bail!("Expected THEN, got EOF"),
+        }
+        let lineno = match self.advance() {
+            Some(Token::Integer(lineno)) => lineno,
+            Some(token) => bail!("Expected line number, got {token}"),
+            None => bail!("Unexpected EOF"),
+        };
+        Ok(Stmt::IfThen {
+            conditional,
+            lineno,
+        })
     }
 
     fn parse_print(&mut self) -> Result<Stmt> {
+        // Handle print a single new line
+        if matches!(self.peek(), Some(Token::Newline) | None) {
+            return Ok(Stmt::Print {
+                expr: Expr::Literal(LiteralValue::None),
+            });
+        }
         let expr = self.expression()?;
         Ok(Stmt::Print { expr })
     }
