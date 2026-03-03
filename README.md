@@ -2,6 +2,8 @@
 
 A Rust implementation of (a subset of) QBasic. The course project for SE1301.
 
+The implementation requirements are available [here](./specs/Minimal Basic (or QBasic).md).
+
 ## Quick Start
 
 Requires `nix` to be installed as the package manager.
