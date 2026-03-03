@@ -14,19 +14,49 @@ pub trait StatsProvider {
     fn variable_use_count(&self, name: &str) -> u32;
 }
 
-impl Display for Expr {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Expr {
+    /// Format an expression with recursive nesting depth,
+    /// each level will add 4 more spaces
+    fn format_indented(&self, indent: usize) -> String {
+        let indent_str = "    ".repeat(indent);
         match self {
             Expr::Binary {
                 operator,
                 left,
                 right,
-            } => write!(f, "    {operator}\n    {left}\n    {right}"),
-            Expr::Unary { operator, right } => write!(f, "    {operator}\n{right}"),
-            Expr::Grouping { expression } => write!(f, "    (\n{expression}    )"),
-            Expr::Literal(literal_value) => write!(f, "    {literal_value}"),
-            Expr::Variable { name } => write!(f, "    {name}"),
+            } => {
+                format!(
+                    "{indent_str}{operator}\n{}\n{}",
+                    left.format_indented(indent + 1),
+                    right.format_indented(indent + 1)
+                )
+            }
+            Expr::Unary { operator, right } => {
+                format!(
+                    "{indent_str}{operator}\n{}",
+                    right.format_indented(indent + 1)
+                )
+            }
+            Expr::Grouping { expression } => {
+                format!(
+                    "{indent_str}(\n{}{indent_str})",
+                    expression.format_indented(indent + 1)
+                )
+            }
+            Expr::Literal(literal_value) => {
+                format!("{indent_str}{literal_value}")
+            }
+            Expr::Variable { name } => {
+                format!("{indent_str}{name}")
+            }
         }
+    }
+}
+
+impl Display for Expr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // 4 spaces at start (level 1)
+        write!(f, "{}", self.format_indented(1))
     }
 }
 

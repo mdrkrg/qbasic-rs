@@ -94,8 +94,8 @@ fn test_syntax_tree_let_with_expression() {
     +
         p
         *
-        q
-        t"#;
+            q
+            t"#;
     assert_eq!(tree, expected);
 }
 
@@ -116,8 +116,8 @@ fn test_syntax_tree_print_with_expression() {
     +
         p
         *
-        q
-        t"#;
+            q
+            t"#;
     assert_eq!(tree, expected);
 }
 
