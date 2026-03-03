@@ -44,7 +44,7 @@ pub enum LiteralValue {
 }
 
 /// A QBasic statement
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Stmt {
     Rem { comment: String },
     Let { name: String, expr: Expr },
@@ -56,6 +56,7 @@ pub enum Stmt {
 }
 
 /// A line of QBasic code
+#[derive(Clone)]
 pub struct Line {
     pub lineno: u32,
     pub statement: Stmt,
