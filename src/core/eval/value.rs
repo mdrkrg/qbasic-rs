@@ -3,8 +3,8 @@ use crate::core::{
     token::{Math, Relational},
 };
 use anyhow::{Result, bail};
-use std::fmt;
 use std::str::FromStr;
+use std::{collections::HashMap, fmt};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Value {
@@ -76,7 +76,7 @@ impl FromStr for Value {
 
 #[derive(Default, Clone, Debug)]
 pub struct Context {
-    pub variables: std::collections::HashMap<String, Value>,
+    pub variables: HashMap<String, Value>,
 }
 
 impl Expr {

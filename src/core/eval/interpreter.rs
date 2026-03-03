@@ -6,7 +6,18 @@ use crate::core::eval::{
 };
 use anyhow::{Result, bail};
 use getset::Getters;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
+
+/// Statistics for a single line
+#[derive(Debug, Clone, Default)]
+pub struct LineStats {
+    /// Number of times the line has been executed
+    pub execution_count: u32,
+    /// Number of times IF branch taken
+    pub if_true_count: u32,
+    /// Number of times IF branch not taken
+    pub if_false_count: u32,
+}
 
 /// State machine that manages program execution
 #[derive(Debug, Getters, Default)]
@@ -20,6 +31,14 @@ pub struct Interpreter {
     #[getset(get = "pub")]
     state: InterpreterState,
     events: EventQueue,
+
+    /// Statistics for each line
+    #[getset(get = "pub")]
+    line_stats: HashMap<u32, LineStats>,
+    /// Count variable usage count
+    /// TODO: implement this
+    #[getset(get = "pub")]
+    variable_use_counts: HashMap<String, u32>,
 }
 
 /// Current state of the interpreter
@@ -52,6 +71,8 @@ impl Interpreter {
             pc,
             state: InterpreterState::Ready,
             events: EventQueue::new(),
+            line_stats: HashMap::new(),
+            variable_use_counts: HashMap::new(),
         }
     }
 
@@ -65,6 +86,17 @@ impl Interpreter {
         self.events.has_events()
     }
 
+    /// Go to next line after output
+    pub fn next(&mut self) {
+        self.handle_action(Action::Continue);
+    }
+
+    /// Reset all statistics
+    pub fn reset_statistics(&mut self) {
+        self.line_stats.clear();
+        self.variable_use_counts.clear();
+    }
+
     /// Execute one step of the program
     pub fn step(&mut self) {
         if self.state != InterpreterState::Ready {
@@ -73,14 +105,31 @@ impl Interpreter {
         }
 
         match self.program.get(&self.pc) {
-            Some(stmt) => match stmt.execute(&self.context) {
-                Ok(action) => self.handle_action(action),
-                Err(err) => {
-                    let error_msg = err.to_string();
-                    self.state = InterpreterState::Error(error_msg.clone());
-                    self.events.push(InterpreterEvent::Error(error_msg));
+            Some(stmt) => {
+                // Track execution count
+                let stats = self.line_stats.entry(self.pc).or_default();
+                stats.execution_count += 1;
+
+                match stmt.execute(&self.context) {
+                    Ok(action) => {
+                        // Track branch results
+                        if let Stmt::IfThen { .. } = stmt {
+                            let stats = self.line_stats.entry(self.pc).or_default();
+                            match action {
+                                Action::Jump(_) => stats.if_true_count += 1,
+                                Action::Continue => stats.if_false_count += 1,
+                                _ => {} // Should not happen
+                            }
+                        }
+                        self.handle_action(action)
+                    }
+                    Err(err) => {
+                        let error_msg = err.to_string();
+                        self.state = InterpreterState::Error(error_msg.clone());
+                        self.events.push(InterpreterEvent::Error(error_msg));
+                    }
                 }
-            },
+            }
             None => {
                 self.state = InterpreterState::Finished;
                 self.events.push(InterpreterEvent::Finished);

@@ -171,6 +171,7 @@ impl Parser {
     }
 
     /// expression -> term
+    /// FIXME: it should not allow for 1 + -1
     fn expression(&mut self) -> Result<Expr> {
         self.term()
     }
