@@ -607,7 +607,10 @@ mod test_parser {
         let test_cases_valid = vec![
             ("10 LET X = -1", "Simple unary minus"),
             ("20 LET X = --Y", "Multiple unary minuses"),
-            ("30 LET X = -1 + 2", "Unary minus at beginning of expression"),
+            (
+                "30 LET X = -1 + 2",
+                "Unary minus at beginning of expression",
+            ),
             ("40 LET X = 1 + (-2)", "Unary minus in parentheses"),
             ("50 LET X = (-1) + 2", "Unary minus in parentheses at start"),
             ("60 LET X = 1 - 2", "Binary minus (not unary)"),
@@ -618,7 +621,10 @@ mod test_parser {
         for (code, description) in test_cases_valid {
             println!("Testing valid: {} - {}", code, description);
             let line = parse_line(code).unwrap_or_else(|e| {
-                panic!("Failed to parse valid case '{}': {} - {}", code, e, description)
+                panic!(
+                    "Failed to parse valid case '{}': {} - {}",
+                    code, e, description
+                )
             });
             // Just ensure it parses without error
             assert!(line.lineno > 0, "Line number should be parsed");
@@ -631,7 +637,10 @@ mod test_parser {
             ("110 LET X = 1 / -2", "Unary minus after binary division"),
             ("120 LET X = 1 % -2", "Unary minus after modulo"),
             ("130 LET X = 1 ** -2", "Unary minus after power"),
-            ("140 LET X = 1 + -2 * 3", "Complex expression with unary minus after plus"),
+            (
+                "140 LET X = 1 + -2 * 3",
+                "Complex expression with unary minus after plus",
+            ),
             ("150 LET X = A + -B", "Unary minus with variables"),
         ];
 
@@ -653,10 +662,17 @@ mod test_parser {
         let line = parse_line("10 IF -X > 0 THEN 20").unwrap();
         assert_eq!(line.lineno, 10);
         match line.statement {
-            Stmt::IfThen { conditional, lineno } => {
+            Stmt::IfThen {
+                conditional,
+                lineno,
+            } => {
                 // Condition should be a binary expression with unary minus on left
                 match conditional {
-                    Expr::Binary { operator, left, right } => {
+                    Expr::Binary {
+                        operator,
+                        left,
+                        right,
+                    } => {
                         match operator {
                             BinaryOp::Relational(Relational::Gt) => (),
                             _ => panic!("Expected > operator"),
@@ -697,20 +713,18 @@ mod test_parser {
         let line = parse_line("10 PRINT -42").unwrap();
         assert_eq!(line.lineno, 10);
         match line.statement {
-            Stmt::Print { expr } => {
-                match expr {
-                    Expr::Unary { operator, right } => {
-                        match operator {
-                            UnaryOp::Negate => (),
-                        }
-                        match *right {
-                            Expr::Literal(LiteralValue::Integer(42)) => (),
-                            _ => panic!("Expected literal 42"),
-                        }
+            Stmt::Print { expr } => match expr {
+                Expr::Unary { operator, right } => {
+                    match operator {
+                        UnaryOp::Negate => (),
                     }
-                    _ => panic!("Expected unary minus expression"),
+                    match *right {
+                        Expr::Literal(LiteralValue::Integer(42)) => (),
+                        _ => panic!("Expected literal 42"),
+                    }
                 }
-            }
+                _ => panic!("Expected unary minus expression"),
+            },
             _ => panic!("Expected Print statement"),
         }
 
