@@ -3,8 +3,11 @@ use crate::core::{
     token::{Math, Relational},
 };
 use anyhow::{Result, bail};
-use std::str::FromStr;
-use std::{collections::HashMap, fmt};
+use std::{cell::RefCell, str::FromStr};
+use std::{
+    collections::HashMap,
+    fmt::{self, Debug},
+};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Value {
@@ -77,6 +80,7 @@ impl FromStr for Value {
 #[derive(Default, Clone, Debug)]
 pub struct Context {
     pub variables: HashMap<String, Value>,
+    pub variable_use_counts: RefCell<HashMap<String, u32>>,
 }
 
 impl Expr {
@@ -101,10 +105,17 @@ impl Expr {
 
             Expr::Literal(literal) => Ok(Expr::eval_literal(literal)),
 
-            Expr::Variable { name } => match context.variables.get(name) {
-                Some(val) => Ok(val.clone()),
-                None => Ok(Value::Integer(0)),
-            },
+            Expr::Variable { name } => {
+                *context
+                    .variable_use_counts
+                    .borrow_mut()
+                    .entry(name.clone())
+                    .or_insert(0) += 1;
+                match context.variables.get(name) {
+                    Some(val) => Ok(val.clone()),
+                    None => Ok(Value::Integer(0)),
+                }
+            }
         }
     }
 

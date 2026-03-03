@@ -145,8 +145,6 @@ fn test_if_branch_tracking() {
 
     // Execute LET x = 1
     interpreter.step();
-    // WARN: No explicit next() after LET
-    // interpreter.next(); // Continue after assignment
 
     // Execute IF x > 3 THEN 50 (false, should continue to line 30)
     interpreter.step();
@@ -184,7 +182,6 @@ fn test_reset_statistics() {
     assert!(stats.is_empty());
 
     // Execute again and verify fresh counts
-    // WARN: should be at line 50 after 30 is executed
     interpreter.step(); // Should still be at line 30 (IF statement)
     let stats = interpreter.line_stats();
     assert_eq!(stats.len(), 1);
@@ -231,20 +228,14 @@ fn test_multiple_executions() {
     // Manually execute the loop
     // Line 10: LET i = 0
     interpreter.step(); // Execute line 10
-    // WARN: No explicit next() after LET
-    // interpreter.next(); // Continue to line 20
 
     // Loop 3 times
     for _ in 0..3 {
         // Line 20: IF i < 3 THEN 40 (false, continue to line 30)
         interpreter.step(); // Execute line 20
-        // WARN: No explicit next() after LET
-        // interpreter.next(); // Continue to line 30 (since condition false)
 
         // Line 30: LET i = i + 1
         interpreter.step(); // Execute line 30
-        // WARN: No explicit next() after LET
-        // interpreter.next(); // Continue to line 35
 
         // Line 35: GOTO 20
         interpreter.step(); // Execute line 35 (jumps to line 20)
@@ -252,8 +243,6 @@ fn test_multiple_executions() {
 
     // Final iteration: i = 3, condition is false
     interpreter.step(); // Execute line 20 (condition false)
-    // WARN: No explicit next() after LET
-    // interpreter.next(); // Continue to line 30
 
     // Check statistics
     let stats = interpreter.line_stats();
@@ -275,8 +264,123 @@ fn test_multiple_executions() {
 }
 
 #[test]
+fn test_variable_use_counts_multiple_in_expression() {
+    // Test that variables used multiple times in same expression are counted correctly
+    let lines = vec![
+        Line {
+            lineno: 10,
+            statement: Stmt::Let {
+                name: "x".to_string(),
+                expr: int_expr(5),
+            },
+        },
+        Line {
+            lineno: 20,
+            statement: Stmt::Print {
+                // Expression: x * x + x (x used 3 times)
+                expr: arithmetic_expr(
+                    arithmetic_expr(var_expr("x"), Math::Times, var_expr("x")),
+                    Math::Plus,
+                    var_expr("x"),
+                ),
+            },
+        },
+        Line {
+            lineno: 30,
+            statement: Stmt::End,
+        },
+    ];
+
+    let mut interpreter = Interpreter::new(lines);
+
+    // Execute LET x = 5
+    interpreter.step();
+    // Execute PRINT x * x + x
+    interpreter.step();
+    interpreter.next(); // Continue after output
+
+    // Check variable usage counts
+    {
+        let use_counts = interpreter.context().variable_use_counts.borrow();
+        // x should be used 3 times in the expression x * x + x
+        assert_eq!(use_counts.get("x"), Some(&3));
+    }
+}
+
+#[test]
 fn test_variable_use_counts() {
-    todo!()
+    // Test program that uses variables
+    let lines = vec![
+        Line {
+            lineno: 10,
+            statement: Stmt::Let {
+                name: "x".to_string(),
+                expr: int_expr(5),
+            },
+        },
+        Line {
+            lineno: 20,
+            statement: Stmt::Let {
+                name: "y".to_string(),
+                expr: int_expr(3),
+            },
+        },
+        Line {
+            lineno: 30,
+            statement: Stmt::Print {
+                // x is used once here
+                expr: var_expr("x"),
+            },
+        },
+        Line {
+            lineno: 40,
+            statement: Stmt::Print {
+                // Expression: x + y * 2
+                // x used once, y used once
+                expr: arithmetic_expr(
+                    var_expr("x"),
+                    Math::Plus,
+                    arithmetic_expr(var_expr("y"), Math::Times, int_expr(2)),
+                ),
+            },
+        },
+        Line {
+            lineno: 50,
+            statement: Stmt::End,
+        },
+    ];
+
+    let mut interpreter = Interpreter::new(lines);
+
+    // Execute LET x = 5
+    interpreter.step();
+    // Execute LET y = 3
+    interpreter.step();
+    // Execute PRINT x (uses x once)
+    interpreter.step();
+    interpreter.next(); // Continue after output
+    // Execute PRINT x + y * 2 (uses x once, y once)
+    interpreter.step();
+    interpreter.next(); // Continue after output
+
+    // Check variable usage counts
+    {
+        let use_counts = interpreter.context().variable_use_counts.borrow();
+
+        // x should be used 2 times (line 30 + line 40)
+        assert_eq!(use_counts.get("x"), Some(&2));
+        // y should be used 1 time (line 40)
+        assert_eq!(use_counts.get("y"), Some(&1));
+        // z should not exist
+        assert_eq!(use_counts.get("z"), None);
+    }
+
+    // Test reset_statistics clears usage counts
+    interpreter.reset_statistics();
+    {
+        let use_counts = interpreter.context().variable_use_counts.borrow();
+        assert!(use_counts.is_empty());
+    }
 }
 
 #[test]

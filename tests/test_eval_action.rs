@@ -2,13 +2,10 @@ use qbasic_rs::core::ast::*;
 use qbasic_rs::core::eval::action::Action;
 use qbasic_rs::core::eval::value::{Context, Value};
 use qbasic_rs::core::token::{Math, Relational};
-use std::collections::HashMap;
 
 // Helper to create a Context for testing
 fn create_test_context() -> Context {
-    Context {
-        variables: HashMap::new(),
-    }
+    Context::default()
 }
 
 // Helper to create a simple integer expression

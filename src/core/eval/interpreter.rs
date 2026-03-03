@@ -35,10 +35,6 @@ pub struct Interpreter {
     /// Statistics for each line
     #[getset(get = "pub")]
     line_stats: HashMap<u32, LineStats>,
-    /// Count variable usage count
-    /// TODO: implement this
-    #[getset(get = "pub")]
-    variable_use_counts: HashMap<String, u32>,
 }
 
 /// Current state of the interpreter
@@ -72,7 +68,6 @@ impl Interpreter {
             state: InterpreterState::Ready,
             events: EventQueue::new(),
             line_stats: HashMap::new(),
-            variable_use_counts: HashMap::new(),
         }
     }
 
@@ -94,7 +89,7 @@ impl Interpreter {
     /// Reset all statistics
     pub fn reset_statistics(&mut self) {
         self.line_stats.clear();
-        self.variable_use_counts.clear();
+        self.context.variable_use_counts.borrow_mut().clear();
     }
 
     /// Execute one step of the program
