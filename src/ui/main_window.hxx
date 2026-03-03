@@ -30,11 +30,10 @@ private slots:
   void onQuitRequested();
 
 private:
-  void setupUi();
+  void setupUI();
   void connectSignals();
   void updateProgramDisplay();
   void updateSyntaxTreeDisplay();
-  void updateVariablesDisplay();
   void updateStatsDisplay();
 
   // UI widgets

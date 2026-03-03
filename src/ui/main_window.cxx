@@ -12,23 +12,21 @@ MainWindow::MainWindow(QWidget *parent)
   setWindowTitle("qbasic-rs");
   resize(800, 600);
 
-  setupUi();
+  setupUI();
   connectSignals();
 
-  // Initial updates
+  // Setup
   updateProgramDisplay();
   updateSyntaxTreeDisplay();
-  updateVariablesDisplay();
   updateStatsDisplay();
   onStateChanged();
 }
 
-void MainWindow::setupUi() {
-  // Central widget and main layout
+void MainWindow::setupUI() {
   QWidget *centralWidget = new QWidget(this);
   QVBoxLayout *mainLayout = new QVBoxLayout(centralWidget);
 
-  // Top section: Code and Output side by side
+  // Top: code and output
   QHBoxLayout *topLayout = new QHBoxLayout();
 
   // Code display (left)
@@ -38,7 +36,7 @@ void MainWindow::setupUi() {
     m_codeDisplay = new QTextBrowser(this);
     m_codeDisplay->setReadOnly(true);
     codeLayout->addWidget(m_codeDisplay);
-    topLayout->addLayout(codeLayout, 2); // 2 parts width
+    topLayout->addLayout(codeLayout, 2);
   }
 
   // Output display (right)
@@ -48,12 +46,12 @@ void MainWindow::setupUi() {
     m_outputDisplay = new QTextBrowser(this);
     m_outputDisplay->setReadOnly(true);
     outputLayout->addWidget(m_outputDisplay);
-    topLayout->addLayout(outputLayout, 1); // 1 part width
+    topLayout->addLayout(outputLayout, 1);
   }
 
-  mainLayout->addLayout(topLayout, 3); // 3 parts height
+  mainLayout->addLayout(topLayout, 3);
 
-  // Middle section: Syntax tree
+  // Middle: syntax tree
   {
     QVBoxLayout *treeLayout = new QVBoxLayout();
     treeLayout->addWidget(new QLabel("Statements and Syntax Trees", this));
@@ -61,10 +59,10 @@ void MainWindow::setupUi() {
     m_treeDisplay->setReadOnly(true);
     m_treeDisplay->setFontFamily("Monospace");
     treeLayout->addWidget(m_treeDisplay);
-    mainLayout->addLayout(treeLayout, 2); // 2 parts height
+    mainLayout->addLayout(treeLayout, 2);
   }
 
-  // Button row
+  // Buttons
   {
     QHBoxLayout *buttonLayout = new QHBoxLayout();
     m_btnLoad = new QPushButton("LOAD", this);
@@ -107,29 +105,34 @@ void MainWindow::connectSignals() {
           &MainWindow::onCommandLineEntered);
 
   // Buttons
-  connect(m_btnRun, &QPushButton::clicked, this, &MainWindow::onRunClicked);
-  connect(m_btnClear, &QPushButton::clicked, this, &MainWindow::onClearClicked);
-  connect(m_btnLoad, &QPushButton::clicked, this, &MainWindow::onLoadClicked);
+  {
+    connect(m_btnRun, &QPushButton::clicked, this, &MainWindow::onRunClicked);
+    connect(m_btnClear, &QPushButton::clicked, this,
+            &MainWindow::onClearClicked);
+    connect(m_btnLoad, &QPushButton::clicked, this, &MainWindow::onLoadClicked);
+  }
 
   // Interpreter signals
-  connect(m_interpreter, &QBasicInterpreter::outputReceived, this,
-          &MainWindow::onOutputReceived);
-  connect(m_interpreter, &QBasicInterpreter::errorOccurred, this,
-          &MainWindow::onErrorOccurred);
-  connect(m_interpreter, &QBasicInterpreter::inputRequested, this,
-          &MainWindow::onInputRequested);
-  connect(m_interpreter, &QBasicInterpreter::programChanged, this,
-          &MainWindow::onProgramChanged);
-  connect(m_interpreter, &QBasicInterpreter::stateChanged, this,
-          &MainWindow::onStateChanged);
-  connect(m_interpreter, &QBasicInterpreter::executionFinished, this,
-          &MainWindow::onExecutionFinished);
-  connect(m_interpreter, &QBasicInterpreter::loadFileRequested, this,
-          &MainWindow::onLoadFileRequested);
-  connect(m_interpreter, &QBasicInterpreter::quitRequested, this,
-          &MainWindow::onQuitRequested);
-  connect(m_interpreter, &QBasicInterpreter::statsUpdated, this,
-          &MainWindow::updateStatsDisplay);
+  {
+    connect(m_interpreter, &QBasicInterpreter::outputReceived, this,
+            &MainWindow::onOutputReceived);
+    connect(m_interpreter, &QBasicInterpreter::errorOccurred, this,
+            &MainWindow::onErrorOccurred);
+    connect(m_interpreter, &QBasicInterpreter::inputRequested, this,
+            &MainWindow::onInputRequested);
+    connect(m_interpreter, &QBasicInterpreter::programChanged, this,
+            &MainWindow::onProgramChanged);
+    connect(m_interpreter, &QBasicInterpreter::stateChanged, this,
+            &MainWindow::onStateChanged);
+    connect(m_interpreter, &QBasicInterpreter::executionFinished, this,
+            &MainWindow::onExecutionFinished);
+    connect(m_interpreter, &QBasicInterpreter::loadFileRequested, this,
+            &MainWindow::onLoadFileRequested);
+    connect(m_interpreter, &QBasicInterpreter::quitRequested, this,
+            &MainWindow::onQuitRequested);
+    connect(m_interpreter, &QBasicInterpreter::statsUpdated, this,
+            &MainWindow::updateStatsDisplay);
+  }
 }
 
 void MainWindow::onCommandLineEntered() {
@@ -166,7 +169,7 @@ void MainWindow::onRunClicked() { m_interpreter->run(); }
 
 void MainWindow::onClearClicked() {
   m_interpreter->clear();
-  // clear output
+  // Clear output
   m_outputDisplay->clear();
 }
 
@@ -177,7 +180,7 @@ void MainWindow::onLoadClicked() {
   if (!fileName.isEmpty()) {
     if (m_interpreter->loadFile(fileName)) {
       m_statusLabel->setText("Loaded: " + fileName);
-      // clear output
+      // Clear output
       m_outputDisplay->clear();
     } else {
       m_statusLabel->setText("Failed to load: " + fileName);
@@ -219,7 +222,7 @@ void MainWindow::onStateChanged() {
   m_btnRun->setEnabled(canEdit);
   m_btnClear->setEnabled(canEdit);
   m_btnLoad->setEnabled(canEdit);
-  m_cmdLineEdit->setEnabled(canEdit || m_waitingForInput);
+  m_cmdLineEdit->setEnabled(canEdit or m_waitingForInput);
 }
 
 void MainWindow::onExecutionFinished() {
@@ -262,10 +265,4 @@ void MainWindow::updateSyntaxTreeDisplay() {
   }
 }
 
-void MainWindow::updateVariablesDisplay() {
-  // TODO: Variables display panel
-}
-
-void MainWindow::updateStatsDisplay() {
-  // TODO: Statistics display panel
-}
+void MainWindow::updateStatsDisplay() { updateSyntaxTreeDisplay(); }
