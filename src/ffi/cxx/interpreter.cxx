@@ -7,6 +7,7 @@
 #include <QDebug>
 #include <QFile>
 #include <QFileInfo>
+#include <QTimer>
 #include <format>
 #include <vector>
 
@@ -211,12 +212,8 @@ void QBasicInterpreter::run() noexcept {
   m_isRunning = true;
   emit stateChanged();
 
-  const auto batch = m_interpreter->run();
-  processEventBatch(batch);
-
-  m_isRunning = false;
-  emit stateChanged();
-  emit statsUpdated();
+  // Incremental execution
+  QTimer::singleShot(0, this, &QBasicInterpreter::executeStep);
 }
 
 void QBasicInterpreter::step() noexcept {
@@ -229,6 +226,48 @@ void QBasicInterpreter::step() noexcept {
   processEventBatch(batch);
   emit stateChanged();
   emit statsUpdated();
+}
+
+void QBasicInterpreter::executeStep() {
+  if (not m_isRunning) {
+    return;
+  }
+
+  const auto batch = m_interpreter->step();
+  processEventBatch(batch);
+  emit stateChanged();
+  emit statsUpdated();
+
+  const auto state = m_interpreter->get_state();
+  switch (state) {
+    using qbasic_rs::InterpreterState;
+  case InterpreterState::Finished:
+  case InterpreterState::Error: {
+    // Completed
+    m_isRunning = false;
+    emit stateChanged();
+    emit statsUpdated();
+    emit executionFinished();
+    break;
+  }
+  case InterpreterState::WaitingForInput: {
+    // Pause
+    m_isRunning = false;
+    emit stateChanged();
+    break;
+  }
+  default: {
+    // Execute next step
+    QTimer::singleShot(0, this, &QBasicInterpreter::executeStep);
+  }
+  }
+}
+
+void QBasicInterpreter::stop() noexcept {
+  if (m_isRunning) {
+    m_isRunning = false;
+    emit stateChanged();
+  }
 }
 
 void QBasicInterpreter::reset() noexcept {
@@ -306,6 +345,8 @@ qbasic_rs::InterpreterState QBasicInterpreter::getState() const noexcept {
 bool QBasicInterpreter::canEdit() const noexcept {
   return m_interpreter->can_edit();
 }
+
+bool QBasicInterpreter::isRunning() const noexcept { return m_isRunning; }
 
 void QBasicInterpreter::processEventBatch(
     const qbasic_rs::EventBatch &batch) noexcept {

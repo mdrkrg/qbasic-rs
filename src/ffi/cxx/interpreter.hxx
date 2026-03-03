@@ -46,6 +46,9 @@ public:
   /// Reset interpreter state but keep program
   void reset() noexcept;
 
+  /// Stop current execution (if running)
+  void stop() noexcept;
+
   /// Provide input to the interpreter state if it is requiring it
   bool provideInput(const QString &value) noexcept;
 
@@ -66,6 +69,9 @@ public:
 
   /// Check if program can be edited
   bool canEdit() const noexcept;
+
+  /// Check if interpreter is currently running
+  bool isRunning() const noexcept;
 
   /// Get current variables of the interpreter and usage count
   std::vector<qbasic_rs::Variable> getVariables() const noexcept;
@@ -107,6 +113,9 @@ signals:
 private:
   /// Process a batch of events
   void processEventBatch(const qbasic_rs::EventBatch &batch) noexcept;
+
+  /// Execute a single step (used by async run)
+  void executeStep();
 
   rust::Box<qbasic_rs::Interpreter> m_interpreter;
 
