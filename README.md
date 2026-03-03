@@ -2,7 +2,7 @@
 
 A Rust implementation of (a subset of) QBasic. The course project for SE1301.
 
-The implementation requirements are available [here](./specs/Minimal Basic (or QBasic).md).
+The implementation requirements are available [here](./specs/Minimal_Basic_or_QBasic.md).
 
 ## Quick Start
 

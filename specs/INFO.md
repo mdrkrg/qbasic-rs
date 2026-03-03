@@ -1,6 +1,6 @@
 # Information about the specs
 
-`./Minimal Basic (or QBasic).md` is the implementation specs, modified to include local image paths.
+`./Minimal_Basic_or_QBasic.md` is the implementation specs, modified to include local image paths.
 
 `./original/` contains the original copies of the specs.
 
