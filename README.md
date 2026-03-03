@@ -4,7 +4,17 @@ A Rust implementation of (a subset of) QBasic. The course project for SE1301.
 
 ## Quick Start
 
-Requires `just` to be installed, or you can manually execute the build scripts provided in the `justfile`.
+Requires `nix` to be installed as the package manager.
+
+First start a development shell. This will install all the required dependencies:
+
+```sh
+nix develop
+```
+
+Or you can install Qt6 and cargo system wide. The required Qt6 modules are: Core, Gui, Widgets, Test.
+
+The build commands requires `just` to be installed, or you can manually execute the build scripts provided in the `justfile`.
 
 Building the project:
 

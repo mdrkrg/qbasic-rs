@@ -20,13 +20,19 @@
         {
           default = pkgs.mkShell {
             buildInputs = with pkgs; [
-
+              qt6.qtbase
+              qt6.qtwayland
             ];
             nativeBuildInputs = with pkgs; [
               rustc
               rustfmt
               rust-analyzer
               cargo
+              cmake
+              meson
+              qt6.wrapQtAppsHook
+              clang-tools
+              gcc15
             ];
           };
         });
