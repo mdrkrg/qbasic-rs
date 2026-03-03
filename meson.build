@@ -9,6 +9,7 @@ project('qbasic-cxx', 'cpp', 'rust',
 include_dirs = include_directories(
   'src',
   'target/cxxbridge/qbasic-rs/src',
+  'target/cxxbridge/rust',
 )
 
 qbasic_rs = declare_dependency(
@@ -16,12 +17,23 @@ qbasic_rs = declare_dependency(
 )
 
 qt = import('qt6')
-qt_dep = dependency('qt6', modules: ['Core', 'Gui', 'Widgets'], required: true)
+qt_dep = dependency('qt6', modules: ['Core', 'Gui', 'Widgets', 'Test'], required: true)
+
+moc_files = qt.compile_moc(
+  sources: [
+    'src/ffi/cxx/interpreter.cxx',
+  ],
+  headers: [
+    'src/ffi/cxx/interpreter.hxx',
+  ],
+)
 
 executable(
   'qbasic',
   [
-    'src/ui/main.cc',
+    'src/ui/main.cxx',
+    'src/ffi/cxx/interpreter.cxx',
+    moc_files,
   ],
   dependencies: [
     qbasic_rs,
@@ -31,7 +43,36 @@ executable(
   link_args: ['-Wl,--no-as-needed'],
 )
 
-# Tests
+# Test executable
+test_moc_files = qt.compile_moc(
+  sources: [
+    'tests/cxx/test_interpreter.cxx',
+  ],
+  headers: [
+    'tests/cxx/test_interpreter.hxx',
+  ],
+)
+
+test_executable = executable(
+  'test_interpreter',
+  [
+    'tests/cxx/test_runner.cxx',
+    'tests/cxx/test_interpreter.cxx',
+    'src/ffi/cxx/interpreter.cxx',
+    test_moc_files,
+    moc_files,
+  ],
+  dependencies: [
+    qbasic_rs,
+    qt_dep,
+  ],
+  include_directories: include_dirs,
+  link_args: ['-Wl,--no-as-needed'],
+)
+
+test('qt-tests', test_executable)
+
+# Cargo tests
 test('cargo-tests',
   find_program('cargo'),
   args: ['test'],
