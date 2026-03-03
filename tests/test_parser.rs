@@ -75,7 +75,7 @@ mod test_parser {
         assert_eq!(line.lineno, 30);
         match line.statement {
             Stmt::Print { expr } => match expr {
-                Expr::Literal(LiteralValue::String(s)) => assert_eq!(s, "\"Hello\""),
+                Expr::Literal(LiteralValue::String(s)) => assert_eq!(s, "Hello"),
                 _ => panic!("Expected string literal"),
             },
             _ => panic!("Expected Print statement"),

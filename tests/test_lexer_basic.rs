@@ -77,7 +77,7 @@ mod lexer_basic {
         assert_eq!(result.len(), 2);
         assert!(matches!(result[0], Token::Keyword(Keyword::Print)));
         if let Token::String(s) = &result[1] {
-            assert_eq!(s, "\"Hello, World!\"");
+            assert_eq!(s, "Hello, World!");
         } else {
             panic!("Expected String token");
         }

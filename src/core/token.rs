@@ -119,7 +119,11 @@ pub enum Token {
     // #[regex(r"-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?", |lex| lex.slice().parse::<f64>().unwrap())]
     // Number(f64),
     //
-    #[regex(r#""([^"\\\x00-\x1F]|\\(["\\bnfrt/]|u[a-fA-F0-9]{4}))*""#, |lex| lex.slice().to_owned())]
+    #[regex(
+        r#""([^"\\\x00-\x1F]|\\(["\\bnfrt/]|u[a-fA-F0-9]{4}))*""#,
+        // trim starting and ending '"'
+        |lex| lex.slice()[1..lex.slice().len()-1].to_owned(),
+    )]
     String(String),
 
     /// Unterminated string
