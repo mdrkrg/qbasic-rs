@@ -1,4 +1,22 @@
 /// The parser for QBasic. It should be input a sequence of Token and output a sequence of Line.
+///
+/// Grammar:
+/// program -> line*
+/// line -> INTEGER statement
+/// statement -> "PRINT" expression
+///           | "LET" IDENTIFIER "=" expression
+///           | "INPUT" IDENTIFIER
+///           | "IF" expression rel_op expression "THEN" INTEGER
+///           | "GOTO" INTEGER
+///           | "END"
+///           | "REM" STRING
+/// expression -> term
+/// term -> signed_factor ( ("-" | "+" | "%") factor )*
+/// signed_factor -> "-" signed_factor | factor
+/// factor -> power ( ("/" | "*") power )*
+/// power -> unary ("**" unary)*
+/// unary -> primary
+/// primary -> INTEGER | STRING | IDENTIFIER | "(" expression ")"
 use crate::core::{
     ast::{BinaryOp, Expr, Line, LiteralValue, Stmt, UnaryOp},
     token::{Keyword, Math, Relational, Side, Token},
@@ -156,7 +174,8 @@ impl Parser {
 
     // Syntax definitions
 
-    /// In QBasic, a conditional is only a conditional operator
+    /// In this implementation of QBasic,
+    /// a conditional is only a conditional operator
     /// with expressions on both sides
     fn conditional(&mut self) -> Result<Expr> {
         let left = self.expression()?;
@@ -178,14 +197,14 @@ impl Parser {
     }
 
     /// expression -> term
-    /// FIXME: it should not allow for 1 + -1
     fn expression(&mut self) -> Result<Expr> {
         self.term()
     }
 
-    /// term -> factor ( ( "-" | "+" ) factor )*
+    /// term -> signed_factor ( ( "-" | "+" ) factor )*
+    /// In QBasic, unary minus is only allowed at the beginning of a term
     fn term(&mut self) -> Result<Expr> {
-        let mut expr = self.factor()?;
+        let mut expr = self.signed_factor()?;
 
         loop {
             let operator = match self.peek() {
@@ -208,6 +227,21 @@ impl Parser {
         }
 
         Ok(expr)
+    }
+
+    /// signed_factor -> "-" signed_factor | factor
+    fn signed_factor(&mut self) -> Result<Expr> {
+        if let Some(Token::Operator(Math::Minus)) = self.peek() {
+            self.advance();
+            // Recursion for multiple signs
+            let right = self.signed_factor()?;
+            Ok(Expr::Unary {
+                operator: UnaryOp::Negate,
+                right: Box::new(right),
+            })
+        } else {
+            self.factor()
+        }
     }
 
     /// factor -> power ( ( "/" | "*" ) power )*
@@ -257,18 +291,9 @@ impl Parser {
         }
     }
 
-    /// unary -> "-" unary | primary
+    /// unary -> primary
     fn unary(&mut self) -> Result<Expr> {
-        if let Some(Token::Operator(Math::Minus)) = self.peek() {
-            self.advance();
-            let right = self.unary()?;
-            Ok(Expr::Unary {
-                operator: UnaryOp::Negate,
-                right: Box::new(right),
-            })
-        } else {
-            self.primary()
-        }
+        self.primary()
     }
 
     /// primary -> NUMBER | STRING | "(" expression ")"

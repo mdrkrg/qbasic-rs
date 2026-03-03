@@ -600,4 +600,121 @@ mod test_parser {
             _ => panic!("Expected Let statement"),
         }
     }
+
+    #[test]
+    fn test_unary_minus_restrictions() {
+        // Test cases that should work
+        let test_cases_valid = vec![
+            ("10 LET X = -1", "Simple unary minus"),
+            ("20 LET X = --Y", "Multiple unary minuses"),
+            ("30 LET X = -1 + 2", "Unary minus at beginning of expression"),
+            ("40 LET X = 1 + (-2)", "Unary minus in parentheses"),
+            ("50 LET X = (-1) + 2", "Unary minus in parentheses at start"),
+            ("60 LET X = 1 - 2", "Binary minus (not unary)"),
+            ("70 LET X = -(Y + Z)", "Unary minus before parentheses"),
+            ("80 LET X = ---3", "Triple unary minus"),
+        ];
+
+        for (code, description) in test_cases_valid {
+            println!("Testing valid: {} - {}", code, description);
+            let line = parse_line(code).unwrap_or_else(|e| {
+                panic!("Failed to parse valid case '{}': {} - {}", code, e, description)
+            });
+            // Just ensure it parses without error
+            assert!(line.lineno > 0, "Line number should be parsed");
+        }
+
+        // Test cases that should FAIL (C-style expressions not allowed in QBasic)
+        let test_cases_invalid = vec![
+            ("90 LET X = 1 + -2", "Unary minus after binary plus"),
+            ("100 LET X = 1 * -2", "Unary minus after binary times"),
+            ("110 LET X = 1 / -2", "Unary minus after binary division"),
+            ("120 LET X = 1 % -2", "Unary minus after modulo"),
+            ("130 LET X = 1 ** -2", "Unary minus after power"),
+            ("140 LET X = 1 + -2 * 3", "Complex expression with unary minus after plus"),
+            ("150 LET X = A + -B", "Unary minus with variables"),
+        ];
+
+        for (code, description) in test_cases_invalid {
+            println!("Testing invalid: {} - {}", code, description);
+            let result = parse_line(code);
+            assert!(
+                result.is_err(),
+                "Should reject invalid case '{}': {}",
+                code,
+                description
+            );
+        }
+    }
+
+    #[test]
+    fn test_unary_minus_in_conditional() {
+        // Test unary minus in IF statements
+        let line = parse_line("10 IF -X > 0 THEN 20").unwrap();
+        assert_eq!(line.lineno, 10);
+        match line.statement {
+            Stmt::IfThen { conditional, lineno } => {
+                // Condition should be a binary expression with unary minus on left
+                match conditional {
+                    Expr::Binary { operator, left, right } => {
+                        match operator {
+                            BinaryOp::Relational(Relational::Gt) => (),
+                            _ => panic!("Expected > operator"),
+                        }
+                        // Left should be unary minus
+                        match *left {
+                            Expr::Unary { operator, right } => {
+                                match operator {
+                                    UnaryOp::Negate => (),
+                                }
+                                match *right {
+                                    Expr::Variable { name } => assert_eq!(name, "X"),
+                                    _ => panic!("Expected variable X"),
+                                }
+                            }
+                            _ => panic!("Expected unary minus on left"),
+                        }
+                        // Right should be literal 0
+                        match *right {
+                            Expr::Literal(LiteralValue::Integer(0)) => (),
+                            _ => panic!("Expected literal 0"),
+                        }
+                    }
+                    _ => panic!("Expected binary expression"),
+                }
+                assert_eq!(lineno, 20);
+            }
+            _ => panic!("Expected IfThen statement"),
+        }
+
+        // Test that 1 + -1 is invalid in IF statement
+        assert!(parse_line("20 IF 1 + -1 THEN 30").is_err());
+    }
+
+    #[test]
+    fn test_unary_minus_in_print() {
+        // Test PRINT with unary minus
+        let line = parse_line("10 PRINT -42").unwrap();
+        assert_eq!(line.lineno, 10);
+        match line.statement {
+            Stmt::Print { expr } => {
+                match expr {
+                    Expr::Unary { operator, right } => {
+                        match operator {
+                            UnaryOp::Negate => (),
+                        }
+                        match *right {
+                            Expr::Literal(LiteralValue::Integer(42)) => (),
+                            _ => panic!("Expected literal 42"),
+                        }
+                    }
+                    _ => panic!("Expected unary minus expression"),
+                }
+            }
+            _ => panic!("Expected Print statement"),
+        }
+
+        // Test PRINT with invalid unary minus
+        assert!(parse_line("20 PRINT 1 + -2").is_err());
+    }
 }
