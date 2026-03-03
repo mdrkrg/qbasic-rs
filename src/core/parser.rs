@@ -40,6 +40,13 @@ impl Parser {
             Some(token) => bail!("Expected line number, got {token}"),
             None => bail!("Unexpected EOF"),
         };
+        let statement = self.statement()?;
+
+        Ok(Line { lineno, statement })
+    }
+
+    /// Parse a statement without line number
+    pub fn statement(&mut self) -> Result<Stmt> {
         let keyword = match self.advance() {
             // FIXME: Don't know whether suitable for a REM
             Some(Token::Comment(comment)) => Keyword::Rem(comment),
@@ -70,7 +77,7 @@ impl Parser {
             Some(token) => bail!("Expected end of line, found {}", token),
         }
 
-        Ok(Line { lineno, statement })
+        Ok(statement)
     }
 
     fn parse_let(&mut self) -> Result<Stmt> {

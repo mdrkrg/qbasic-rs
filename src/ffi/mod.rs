@@ -3,6 +3,9 @@ use std::collections::{BTreeMap, HashMap};
 
 mod implement;
 
+// export to tests
+pub use self::qbasic_rs::*;
+
 #[cxx::bridge(namespace = "qbasic_rs")]
 mod qbasic_rs {
     // CXX representation of Rust Line and syntax tree
@@ -74,6 +77,7 @@ mod qbasic_rs {
         fn new_interpreter() -> Box<Interpreter>;
 
         fn process_line(self: &mut Interpreter, line_text: &str) -> Result<LineOpResult>;
+        fn execute(self: &mut Interpreter, line_text: &str) -> Result<EventBatch>;
         fn clear(self: &mut Interpreter);
 
         fn load_file(self: &mut Interpreter, path: &str) -> Result<()>;

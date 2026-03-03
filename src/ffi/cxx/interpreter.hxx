@@ -16,6 +16,8 @@ public:
   /// - If line is a number, delete the line (ignore if not exist)
   /// - Otherwise, add / update the line
   bool processLine(const QString &lineText) noexcept;
+  /// Directly execute a line of QBasic code (without line number)
+  bool executeDirect(const QString &lineText) noexcept;
   /// Clear all states and reset the interpreter
   void clear() noexcept;
 

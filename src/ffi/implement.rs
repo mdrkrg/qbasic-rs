@@ -1,5 +1,5 @@
 use crate::core::{
-    ast::Line,
+    ast::{Line, Stmt},
     eval::{
         event::InterpreterEvent as RustEvent,
         interpreter::{Interpreter as RustInterpreter, InterpreterState as RustState},
@@ -33,6 +33,43 @@ impl Interpreter {
             InterpreterState::Ready => !self.started,
             InterpreterState::WaitingForInput => false,
             _ => false,
+        }
+    }
+
+    /// Execute a statement directly (without line number)
+    /// Allowed: LET, PRINT, INPUT
+    pub fn execute(&mut self, line_text: &str) -> Result<EventBatch> {
+        let tokens =
+            tokenize(line_text).map_err(|e| anyhow::anyhow!("Tokenization error: {:?}", e))?;
+        let mut parser = Parser::new(tokens);
+        let stmt = parser
+            .statement()
+            .map_err(|e| anyhow::anyhow!("Parse error: {}", e))?;
+
+        match &stmt {
+            Stmt::Let { .. } | Stmt::Print { .. } | Stmt::Input { .. } => {
+                // Execute directly
+                self.inner.execute(stmt);
+                let events = self.inner.take_events();
+                let mut batch = EventBatch {
+                    outputs: Vec::new(),
+                    inputs: Vec::new(),
+                    errors: Vec::new(),
+                    debug_messages: Vec::new(),
+                    finished: false,
+                };
+                for event in events {
+                    match event {
+                        RustEvent::Output(text) => batch.outputs.push(text),
+                        RustEvent::Input(var_name) => batch.inputs.push(var_name),
+                        RustEvent::Error(err) => batch.errors.push(err),
+                        RustEvent::Finished => batch.finished = true,
+                        RustEvent::Debug(msg) => batch.debug_messages.push(msg),
+                    }
+                }
+                Ok(batch)
+            }
+            _ => bail!("Statement not allowed in direct mode: {:?}", stmt),
         }
     }
 

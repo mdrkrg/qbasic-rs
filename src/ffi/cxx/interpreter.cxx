@@ -37,6 +37,18 @@ bool QBasicInterpreter::processLine(const QString &lineText) noexcept {
   }
 }
 
+bool QBasicInterpreter::executeDirect(const QString &lineText) noexcept {
+  try {
+    const auto batch = m_interpreter->execute(lineText.toStdString());
+    processEventBatch(batch);
+    return true;
+  } catch (const rust::Error &e) {
+    qWarning() << std::format("Failed to execute direct: {}", e.what());
+    emit errorOccurred(QString::fromUtf8(e.what()));
+    return false;
+  }
+}
+
 void QBasicInterpreter::clear() noexcept {
   m_interpreter->clear();
   emit programChanged();

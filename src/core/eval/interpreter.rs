@@ -214,6 +214,36 @@ impl Interpreter {
         }
         Ok(())
     }
+
+    /// Execute a single statement directly
+    /// Update context and generate events, without affecting pc or line stats
+    pub fn execute(&mut self, stmt: Stmt) {
+        match stmt.execute(&self.context) {
+            Ok(action) => {
+                match action {
+                    Action::Output(text) => {
+                        self.events.push(InterpreterEvent::Output(text));
+                        // No auto continue
+                    }
+                    Action::Input(name) => {
+                        self.state = InterpreterState::WaitingForInput(name.clone());
+                        self.events.push(InterpreterEvent::Input(name));
+                    }
+                    Action::Assign(name, value) => {
+                        self.context.variables.insert(name, value);
+                    }
+                    _ => {
+                        // Should not happen
+                    }
+                }
+            }
+            Err(err) => {
+                let error_msg = err.to_string();
+                self.state = InterpreterState::Error(error_msg.clone());
+                self.events.push(InterpreterEvent::Error(error_msg));
+            }
+        }
+    }
 }
 
 impl Interpreter {
