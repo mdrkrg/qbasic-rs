@@ -3,6 +3,7 @@
 #include "ffi/cxx/utils.hxx"
 #include "ffi/mod.rs.h"
 #include "qlogging.h"
+#include <CLI/CLI.hpp>
 #include <QDebug>
 #include <QFile>
 #include <QFileInfo>
@@ -49,11 +50,120 @@ bool QBasicInterpreter::executeDirect(const QString &lineText) noexcept {
   }
 }
 
+bool QBasicInterpreter::processInput(const QString &input) noexcept {
+  const auto trimmed = input.trimmed().toStdString();
+  if (trimmed.empty()) {
+    return false;
+  }
+
+  // Try parsing as command
+  try {
+    CLI::App app{"QBasic Interpreter"};
+    app.failure_message(CLI::FailureMessage::help);
+    app.allow_extras(false);
+    app.ignore_case();
+    // disable help
+    app.set_help_flag("");
+    app.set_help_all_flag("");
+
+    bool command_handled = false;
+    bool command_result = false;
+
+    // RUN
+    auto *run_cmd = app.add_subcommand("RUN", "Start program execution");
+    run_cmd->callback([this, &command_handled, &command_result]() {
+      reset();
+      run();
+      command_handled = true;
+      command_result = true;
+    });
+
+    // CLEAR
+    auto *clear_cmd = app.add_subcommand("CLEAR", "Clear current program");
+    clear_cmd->callback([this, &command_handled, &command_result]() {
+      clear();
+      command_handled = true;
+      command_result = true;
+    });
+
+    // QUIT
+    auto *quit_cmd = app.add_subcommand("QUIT", "Exit interpreter");
+    quit_cmd->callback([this, &command_handled, &command_result]() {
+      emit quitRequested();
+      command_handled = true;
+      command_result = true;
+    });
+
+    // LOAD
+    // with optional filename
+    auto load_cmd = app.add_subcommand("LOAD", "Load program from file");
+    std::string filename;
+    load_cmd->add_option("filename", filename, "File to load")->required(false);
+    load_cmd->callback([this, &filename, &command_handled, &command_result]() {
+      if (filename.empty()) {
+        // TODO: Show file selector in UI and calls loadFile()
+        emit loadFileRequested();
+        command_handled = true;
+        command_result = true;
+      } else {
+        command_handled = true;
+        command_result = loadFile(QString::fromStdString(filename));
+      }
+    });
+
+    // Direct execute
+    app.add_subcommand("PRINT", "Directly execute PRINT statement");
+    app.add_subcommand("LET", "Directly execute LET statement");
+    app.add_subcommand("INPUT", "Directly execute INPUT statement");
+
+    app.usage("<line number> [STATEMENT]");
+
+    // HELP
+    auto *help_cmd = app.add_subcommand("HELP", "Show help");
+    // Late init help text
+    help_cmd->callback(
+        [this, help_text = app.help(), &command_handled, &command_result]() {
+          QString helpText = QString::fromStdString(help_text);
+          emit outputReceived(helpText);
+          command_handled = true;
+          command_result = true;
+        });
+
+    { // Parse and execute
+      auto tokens = utils::split_view_into(trimmed, ' ');
+      if (tokens.empty()) {
+        return false;
+      }
+      app.parse(tokens);
+
+      // Check if a subcommand was executed
+      if (app.got_subcommand(run_cmd) || app.got_subcommand(clear_cmd) ||
+          app.got_subcommand(help_cmd) || app.got_subcommand(quit_cmd) ||
+          app.got_subcommand(load_cmd)) {
+        return command_handled and command_result;
+      }
+    }
+  } catch (...) {
+    // Fall throught
+  }
+
+  // Not command
+  if (bool startswith_digit =
+          (not trimmed.empty()) and std::isdigit(trimmed[0]);
+      startswith_digit) {
+    // Line editing if starts with digit
+    return processLine(QString::fromStdString(trimmed));
+  } else {
+    // Else directly execute
+    return executeDirect(QString::fromStdString(trimmed));
+  }
+}
+
 void QBasicInterpreter::clear() noexcept {
   m_interpreter->clear();
   emit programChanged();
   emit stateChanged();
-  emit statisticsUpdated();
+  emit statsUpdated();
 }
 
 bool QBasicInterpreter::loadFile(const QString &path) noexcept {
@@ -92,7 +202,7 @@ void QBasicInterpreter::run() noexcept {
 
   m_isRunning = false;
   emit stateChanged();
-  emit statisticsUpdated();
+  emit statsUpdated();
 }
 
 void QBasicInterpreter::step() noexcept {
@@ -104,14 +214,14 @@ void QBasicInterpreter::step() noexcept {
   const auto batch = m_interpreter->step();
   processEventBatch(batch);
   emit stateChanged();
-  emit statisticsUpdated();
+  emit statsUpdated();
 }
 
 void QBasicInterpreter::reset() noexcept {
   m_interpreter->reset();
   m_isRunning = false;
   emit stateChanged();
-  emit statisticsUpdated();
+  emit statsUpdated();
 }
 
 bool QBasicInterpreter::provideInput(const QString &value) noexcept {
@@ -136,6 +246,8 @@ QString QBasicInterpreter::getStateString() const noexcept {
     return "Finished";
   case qbasic_rs::InterpreterState::Error:
     return "Error";
+  default:
+    return "Unknown";
   }
 }
 

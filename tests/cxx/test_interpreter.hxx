@@ -18,6 +18,7 @@ private slots:
   void testSyntaxTree();
   void testClear();
   void testSignals();
+  void testCommandParsing();
 
 private:
   QBasicInterpreter *interpreter = nullptr;

@@ -17,7 +17,12 @@ qbasic_rs = declare_dependency(
 )
 
 qt = import('qt6')
-qt_dep = dependency('qt6', modules: ['Core', 'Gui', 'Widgets', 'Test'], required: true)
+
+dependencies = [
+  qbasic_rs,
+  dependency('qt6', modules: ['Core', 'Gui', 'Widgets', 'Test'], required: true),
+  dependency('CLI11', required: true),
+]
 
 moc_files = qt.compile_moc(
   sources: [
@@ -35,10 +40,7 @@ executable(
     'src/ffi/cxx/interpreter.cxx',
     moc_files,
   ],
-  dependencies: [
-    qbasic_rs,
-    qt_dep,
-  ],
+  dependencies: dependencies,
   include_directories: include_dirs,
   link_args: ['-Wl,--no-as-needed'],
 )
@@ -62,10 +64,7 @@ test_executable = executable(
     test_moc_files,
     moc_files,
   ],
-  dependencies: [
-    qbasic_rs,
-    qt_dep,
-  ],
+  dependencies: dependencies,
   include_directories: include_dirs,
   link_args: ['-Wl,--no-as-needed'],
 )
