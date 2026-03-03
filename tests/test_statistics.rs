@@ -2,35 +2,8 @@ use qbasic_rs::core::ast::*;
 use qbasic_rs::core::eval::interpreter::{Interpreter, InterpreterState};
 use qbasic_rs::core::token::{Math, Relational};
 
-// Helper to create a simple integer expression
-fn int_expr(value: u32) -> Expr {
-    Expr::Literal(LiteralValue::Integer(value))
-}
-
-// Helper to create a variable expression
-fn var_expr(name: &str) -> Expr {
-    Expr::Variable {
-        name: name.to_string(),
-    }
-}
-
-// Helper to create a binary arithmetic expression
-fn arithmetic_expr(left: Expr, op: Math, right: Expr) -> Expr {
-    Expr::Binary {
-        operator: BinaryOp::Arithmetic(op),
-        left: Box::new(left),
-        right: Box::new(right),
-    }
-}
-
-// Helper to create a binary relational expression
-fn relational_expr(left: Expr, op: Relational, right: Expr) -> Expr {
-    Expr::Binary {
-        operator: BinaryOp::Relational(op),
-        left: Box::new(left),
-        right: Box::new(right),
-    }
-}
+mod utils;
+use utils::{arithmetic_expr, int_expr, relational_expr, var_expr};
 
 /// Helper function to create a simple interpreter with test program
 fn create_test_interpreter() -> Interpreter {

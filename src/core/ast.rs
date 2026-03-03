@@ -1,3 +1,7 @@
+use std::fmt::Display;
+
+use strum_macros;
+
 /// AST definitions.
 /// Should not contain raw Tokens.
 use crate::core::token::{Math, Relational};
@@ -9,8 +13,9 @@ pub enum BinaryOp {
                       // Logic(Logic)
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(strum_macros::Display, Debug, Clone, Copy, PartialEq)]
 pub enum UnaryOp {
+    #[strum(serialize = "-")]
     Negate, // -
             // Not,
 }
@@ -60,4 +65,24 @@ pub enum Stmt {
 pub struct Line {
     pub lineno: u32,
     pub statement: Stmt,
+}
+
+impl Display for BinaryOp {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            BinaryOp::Arithmetic(math) => write!(f, "{math}"),
+            BinaryOp::Relational(relational) => write!(f, "{relational}"),
+        }
+    }
+}
+
+impl Display for LiteralValue {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            LiteralValue::Integer(i) => write!(f, "{i}"),
+            LiteralValue::Number(d) => write!(f, "{d}"),
+            LiteralValue::String(s) => write!(f, "{s}"),
+            LiteralValue::None => write!(f, ""),
+        }
+    }
 }

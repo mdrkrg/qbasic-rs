@@ -3,26 +3,8 @@ use qbasic_rs::core::eval::interpreter::{Interpreter, InterpreterState};
 use qbasic_rs::core::eval::value::Value;
 use qbasic_rs::core::token::Relational;
 
-// Helper to create a simple integer expression
-fn int_expr(value: u32) -> Expr {
-    Expr::Literal(LiteralValue::Integer(value))
-}
-
-// Helper to create a variable expression
-fn var_expr(name: &str) -> Expr {
-    Expr::Variable {
-        name: name.to_string(),
-    }
-}
-
-// Helper to create a binary relational expression
-fn relational_expr(left: Expr, op: Relational, right: Expr) -> Expr {
-    Expr::Binary {
-        operator: BinaryOp::Relational(op),
-        left: Box::new(left),
-        right: Box::new(right),
-    }
-}
+mod utils;
+use utils::{int_expr, relational_expr, var_expr};
 
 #[test]
 fn test_interpreter_basic_execution() {

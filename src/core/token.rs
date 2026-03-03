@@ -1,7 +1,6 @@
 use logos::{Lexer, Logos};
 use std::str::FromStr;
-use strum::Display;
-use strum_macros::EnumString;
+use strum_macros::{Display, EnumString};
 
 #[derive(EnumString, Debug, PartialEq, Clone)]
 pub enum Keyword {
@@ -23,7 +22,7 @@ pub enum Keyword {
     End,
 }
 
-#[derive(EnumString, Debug, PartialEq, Clone, Copy)]
+#[derive(EnumString, Display, Debug, PartialEq, Clone, Copy)]
 /// Math expression operators
 pub enum Math {
     #[strum(serialize = "+")]
@@ -49,7 +48,7 @@ pub enum Side {
     Right,
 }
 
-#[derive(EnumString, Debug, PartialEq, Clone, Copy)]
+#[derive(EnumString, Display, Debug, PartialEq, Clone, Copy)]
 /// Relational operators
 pub enum Relational {
     #[strum(serialize = "<")]

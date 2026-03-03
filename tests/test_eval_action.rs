@@ -3,39 +3,12 @@ use qbasic_rs::core::eval::action::Action;
 use qbasic_rs::core::eval::value::{Context, Value};
 use qbasic_rs::core::token::{Math, Relational};
 
+mod utils;
+use utils::{binary_expr, int_expr, relational_expr, var_expr};
+
 // Helper to create a Context for testing
 fn create_test_context() -> Context {
     Context::default()
-}
-
-// Helper to create a simple integer expression
-fn int_expr(value: u32) -> Expr {
-    Expr::Literal(LiteralValue::Integer(value))
-}
-
-// Helper to create a variable expression
-fn var_expr(name: &str) -> Expr {
-    Expr::Variable {
-        name: name.to_string(),
-    }
-}
-
-// Helper to create a binary arithmetic expression
-fn binary_expr(left: Expr, op: Math, right: Expr) -> Expr {
-    Expr::Binary {
-        operator: BinaryOp::Arithmetic(op),
-        left: Box::new(left),
-        right: Box::new(right),
-    }
-}
-
-// Helper to create a binary relational expression
-fn relational_expr(left: Expr, op: Relational, right: Expr) -> Expr {
-    Expr::Binary {
-        operator: BinaryOp::Relational(op),
-        left: Box::new(left),
-        right: Box::new(right),
-    }
 }
 
 #[test]
