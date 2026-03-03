@@ -66,3 +66,11 @@ pub fn relational_expr(left: Expr, op: Relational, right: Expr) -> Expr {
         right: Box::new(right),
     }
 }
+
+// Helper to create a grouping expression
+#[allow(dead_code)]
+pub fn grouping_expr(expr: Expr) -> Expr {
+    Expr::Grouping {
+        expression: Box::new(expr),
+    }
+}

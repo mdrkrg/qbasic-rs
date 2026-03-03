@@ -39,7 +39,7 @@ impl Expr {
             }
             Expr::Grouping { expression } => {
                 format!(
-                    "{indent_str}(\n{}{indent_str})",
+                    "{indent_str}(\n{}\n{indent_str})",
                     expression.format_indented(indent + 1)
                 )
             }

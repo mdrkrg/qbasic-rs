@@ -4,7 +4,7 @@ use qbasic_rs::core::eval::interpreter::{Interpreter, InterpreterState};
 use qbasic_rs::core::token::{Math, Relational};
 
 mod utils;
-use utils::{binary_expr, int_expr, relational_expr, var_expr};
+use utils::{binary_expr, grouping_expr, int_expr, relational_expr, var_expr};
 
 struct MockStats;
 impl StatsProvider for MockStats {
@@ -118,6 +118,30 @@ fn test_syntax_tree_print_with_expression() {
         *
             q
             t"#;
+    assert_eq!(tree, expected);
+}
+
+#[test]
+fn test_syntax_tree_print_with_expression_grouping() {
+    use Math::{Plus, Times};
+    let expr = binary_expr(
+        var_expr("p"),
+        Plus,
+        grouping_expr(binary_expr(var_expr("q"), Times, var_expr("t"))),
+    );
+    let line = Line {
+        lineno: 10,
+        statement: Stmt::Print { expr },
+    };
+    let tree = line.format_syntax_tree(&MockStats);
+    let expected = r#"10 PRINT 0
+    +
+        p
+        (
+            *
+                q
+                t
+        )"#;
     assert_eq!(tree, expected);
 }
 
