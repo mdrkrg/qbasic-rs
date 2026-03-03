@@ -1,14 +1,29 @@
-use crate::token::Token;
+/// AST definitions.
+/// Should not contain raw Tokens.
+use crate::token::{Math, Relational};
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum BinaryOp {
+    Arithmetic(Math), // +, -, *, /, MOD
+    Relational(Relational), // =, <, >, <=, >=
+                      // Logic(Logic)
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum UnaryOp {
+    Negate, // -
+            // Not,
+}
 
 #[derive(Debug, Clone)]
 pub enum Expr {
     Binary {
-        operator: Token,
+        operator: BinaryOp,
         left: Box<Expr>,
         right: Box<Expr>,
     },
     Unary {
-        operator: Token,
+        operator: UnaryOp,
         right: Box<Expr>,
     },
     Grouping {
@@ -29,26 +44,12 @@ pub enum LiteralValue {
 
 /// A QBasic statement
 pub enum Stmt {
-    Rem {
-        comment: Token, // String?
-    },
-    Let {
-        name: String,
-        expr: Expr,
-    },
-    Print {
-        expr: Expr,
-    },
-    Input {
-        name: Token, // String?
-    },
-    Goto {
-        lineno: Token, // u32?
-    },
-    IfThen {
-        conditional: Expr,
-        lineno: Token, // u32?
-    },
+    Rem { comment: String },
+    Let { name: String, expr: Expr },
+    Print { expr: Expr },
+    Input { name: String },
+    Goto { lineno: u32 },
+    IfThen { conditional: Expr, lineno: u32 },
     End,
 }
 

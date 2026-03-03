@@ -1,3 +1,4 @@
+/// The parser for QBasic. It should be input a sequence of Token and output a sequence of Line.
 use crate::{
     ast::{Expr, Line, Stmt},
     token::{Keyword, Token},
@@ -30,9 +31,7 @@ impl Parser {
             Keyword::Print => self.parse_print()?,
             Keyword::Input => self.parse_input()?,
             Keyword::End => self.parse_end()?,
-            Keyword::Rem(comment) => Stmt::Rem {
-                comment: Token::Comment(comment),
-            },
+            Keyword::Rem(comment) => Stmt::Rem { comment },
             Keyword::Then => bail!("Unexpected THEN at start of statement"),
         };
 
@@ -60,9 +59,7 @@ impl Parser {
             Some(token) => bail!("Expected line number, got {token}"),
             None => bail!("Unexpected EOF"),
         };
-        Ok(Stmt::Goto {
-            lineno: Token::Integer(lineno),
-        })
+        Ok(Stmt::Goto { lineno })
     }
 
     fn parse_if(&mut self) -> Result<Stmt> {
@@ -80,9 +77,7 @@ impl Parser {
             Some(token) => bail!("Expected identifier, got {token}"),
             None => bail!("Unexpected EOF"),
         };
-        Ok(Stmt::Input {
-            name: Token::Identifier(name),
-        })
+        Ok(Stmt::Input { name })
     }
 
     fn parse_end(&mut self) -> Result<Stmt> {
