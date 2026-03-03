@@ -331,7 +331,6 @@ void MainWindow::updateSyntaxTreeDisplay() {
   for (const auto &line : lines) {
     QString syntaxTree = m_interpreter->getSyntaxTree(line.lineno);
     if (!syntaxTree.isEmpty()) {
-      m_treeDisplay->append("Line " + QString::number(line.lineno) + ":");
       m_treeDisplay->append(syntaxTree);
       m_treeDisplay->append("");
     }
