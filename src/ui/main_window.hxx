@@ -17,6 +17,7 @@ public:
 private slots:
   void onCommandLineEntered();
   void onRunClicked();
+  void onStepClicked();
   void onClearClicked();
   void onLoadClicked();
 
@@ -42,6 +43,7 @@ private:
   QTextBrowser *m_treeDisplay = nullptr;
   QPushButton *m_btnLoad = nullptr;
   QPushButton *m_btnRun = nullptr;
+  QPushButton *m_btnStep = nullptr;
   QPushButton *m_btnClear = nullptr;
   QLineEdit *m_cmdLineEdit = nullptr;
   QLabel *m_statusLabel = nullptr;

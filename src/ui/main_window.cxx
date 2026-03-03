@@ -67,10 +67,12 @@ void MainWindow::setupUI() {
     QHBoxLayout *buttonLayout = new QHBoxLayout();
     m_btnLoad = new QPushButton("LOAD", this);
     m_btnRun = new QPushButton("RUN", this);
+    m_btnStep = new QPushButton("STEP", this);
     m_btnClear = new QPushButton("CLEAR", this);
 
     buttonLayout->addWidget(m_btnLoad);
     buttonLayout->addWidget(m_btnRun);
+    buttonLayout->addWidget(m_btnStep);
     buttonLayout->addWidget(m_btnClear);
     buttonLayout->addStretch();
 
@@ -107,6 +109,7 @@ void MainWindow::connectSignals() {
   // Buttons
   {
     connect(m_btnRun, &QPushButton::clicked, this, &MainWindow::onRunClicked);
+    connect(m_btnStep, &QPushButton::clicked, this, &MainWindow::onStepClicked);
     connect(m_btnClear, &QPushButton::clicked, this,
             &MainWindow::onClearClicked);
     connect(m_btnLoad, &QPushButton::clicked, this, &MainWindow::onLoadClicked);
@@ -165,7 +168,13 @@ void MainWindow::onCommandLineEntered() {
   }
 }
 
-void MainWindow::onRunClicked() { m_interpreter->run(); }
+void MainWindow::onRunClicked() {
+  // Reset first
+  m_interpreter->reset();
+  m_interpreter->run();
+}
+
+void MainWindow::onStepClicked() { m_interpreter->step(); }
 
 void MainWindow::onClearClicked() {
   m_interpreter->clear();
@@ -219,10 +228,16 @@ void MainWindow::onStateChanged() {
 
   // Update button states
   bool canEdit = m_interpreter->canEdit();
-  m_btnRun->setEnabled(canEdit);
-  m_btnClear->setEnabled(canEdit);
-  m_btnLoad->setEnabled(canEdit);
-  m_cmdLineEdit->setEnabled(canEdit or m_waitingForInput);
+  bool isRunning = m_interpreter->isRunning();
+  bool isReady =
+      m_interpreter->getState() == qbasic_rs::InterpreterState::Ready;
+  bool isWaitingForInput =
+      m_interpreter->getState() == qbasic_rs::InterpreterState::WaitingForInput;
+  m_btnRun->setEnabled(canEdit and not isRunning);
+  m_btnStep->setEnabled(isReady and not isRunning);
+  m_btnClear->setEnabled(canEdit and not isRunning);
+  m_btnLoad->setEnabled(canEdit and not isRunning);
+  m_cmdLineEdit->setEnabled((canEdit and not isRunning) or m_waitingForInput);
 }
 
 void MainWindow::onExecutionFinished() {
