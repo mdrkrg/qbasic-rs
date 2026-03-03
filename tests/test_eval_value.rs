@@ -80,6 +80,22 @@ fn test_division_by_zero() {
     assert!(err.to_string().contains("Division by zero"));
 }
 
+/// According to the specs:
+/// In the expression LET r = a MOD b, the absolute value of r
+/// should be less than the absolute value of b, and the sign of
+/// r is the same as that of b.
+#[test]
+fn test_modulo() {
+    let ctx = create_test_context();
+    let expr = binary_expr(
+        int_expr(5),
+        Math::Modulo,
+        unary_expr(UnaryOp::Negate, int_expr(3)),
+    );
+    let result = expr.evaluate(&ctx).unwrap();
+    assert_eq!(result, Value::Integer(2));
+}
+
 #[test]
 fn test_relational_operations_integers() {
     let ctx = create_test_context();

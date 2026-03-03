@@ -143,7 +143,7 @@ impl Expr {
                         }
                         l / r
                     }
-                    Math::Modulo => l % r,
+                    Math::Modulo => l.rem_euclid(r),
                     Math::Power => (l as f64).powf(r as f64) as i64,
                 };
                 Value::Integer(int)
