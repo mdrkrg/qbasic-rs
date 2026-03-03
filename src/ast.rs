@@ -2,14 +2,14 @@
 /// Should not contain raw Tokens.
 use crate::token::{Math, Relational};
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum BinaryOp {
     Arithmetic(Math), // +, -, *, /, MOD
     Relational(Relational), // =, <, >, <=, >=
                       // Logic(Logic)
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum UnaryOp {
     Negate, // -
             // Not,
@@ -44,6 +44,7 @@ pub enum LiteralValue {
 }
 
 /// A QBasic statement
+#[derive(Debug)]
 pub enum Stmt {
     Rem { comment: String },
     Let { name: String, expr: Expr },

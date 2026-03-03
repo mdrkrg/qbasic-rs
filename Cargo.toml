@@ -3,8 +3,16 @@ name = "qbasic-rs"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+bin = []
+testing = []
+
 [dependencies]
 anyhow = "1.0.100"
+getset = "0.1.6"
 logos = "0.16.0"
 strum = { version = "0.27.2", features = ["derive"] }
 strum_macros = "0.27.2"
+
+[dev-dependencies]
+qbasic-rs = { version = "0.1.0", path = ".", features = ["testing"] }

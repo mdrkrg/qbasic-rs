@@ -12,6 +12,28 @@ pub struct Parser {
 }
 
 impl Parser {
+    pub fn new(tokens: Vec<Token>) -> Self {
+        Self {
+            tokens: tokens.into(),
+        }
+    }
+
+    pub fn parse(&mut self) -> Result<Vec<Line>> {
+        let mut lines = vec![];
+        while self.peek().is_some() {
+            let line = self.line();
+            match line {
+                Ok(line) => {
+                    lines.push(line);
+                }
+                Err(err) => {
+                    bail!("Error parsing: {err}")
+                }
+            }
+        }
+        Ok(lines)
+    }
+
     pub fn line(&mut self) -> Result<Line> {
         let lineno = match self.advance() {
             Some(Token::Integer(lineno)) => lineno,
