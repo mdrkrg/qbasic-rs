@@ -4,6 +4,7 @@
 #include <QHBoxLayout>
 #include <QMessageBox>
 #include <QStatusBar>
+#include <QTimer>
 #include <QVBoxLayout>
 
 MainWindow::MainWindow(QWidget *parent)
@@ -87,6 +88,8 @@ void MainWindow::setupUi() {
     m_cmdLineEdit->setFont(QFont("Monospace", 12));
     m_cmdLineEdit->setPlaceholderText("Enter QBasic command or statement...");
     cmdLayout->addWidget(m_cmdLineEdit);
+    QTimer::singleShot(0, m_cmdLineEdit,
+                       [this]() { m_cmdLineEdit->setFocus(); });
 
     mainLayout->addLayout(cmdLayout);
   }
