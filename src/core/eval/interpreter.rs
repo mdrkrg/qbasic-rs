@@ -1,13 +1,15 @@
-use crate::ast::{Line, Stmt};
-use crate::eval::action::Action;
-use crate::eval::event::{EventQueue, InterpreterEvent};
-use crate::eval::value::{Context, Value};
+use crate::core::ast::{Line, Stmt};
+use crate::core::eval::{
+    action::Action,
+    event::{EventQueue, InterpreterEvent},
+    value::{Context, Value},
+};
 use anyhow::{Result, bail};
 use getset::Getters;
 use std::collections::BTreeMap;
 
 /// State machine that manages program execution
-#[derive(Debug, Getters)]
+#[derive(Debug, Getters, Default)]
 pub struct Interpreter {
     #[getset(get = "pub")]
     context: Context,
@@ -21,9 +23,10 @@ pub struct Interpreter {
 }
 
 /// Current state of the interpreter
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub enum InterpreterState {
     /// Ready to execute next statement
+    #[default]
     Ready,
     /// Waiting for input for specified variable
     WaitingForInput(String),

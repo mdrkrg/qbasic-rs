@@ -1,7 +1,7 @@
-use qbasic_rs::ast::*;
-use qbasic_rs::eval::interpreter::{Interpreter, InterpreterState};
-use qbasic_rs::eval::value::Value;
-use qbasic_rs::token::Relational;
+use qbasic_rs::core::ast::*;
+use qbasic_rs::core::eval::interpreter::{Interpreter, InterpreterState};
+use qbasic_rs::core::eval::value::Value;
+use qbasic_rs::core::token::Relational;
 
 // Helper to create a simple integer expression
 fn int_expr(value: u32) -> Expr {

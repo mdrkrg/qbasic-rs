@@ -1,6 +1,6 @@
 /// AST definitions.
 /// Should not contain raw Tokens.
-use crate::token::{Math, Relational};
+use crate::core::token::{Math, Relational};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum BinaryOp {

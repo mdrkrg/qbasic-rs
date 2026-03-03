@@ -1,4 +1,4 @@
-use crate::token::Token;
+use crate::core::token::Token;
 use anyhow::Result;
 use logos::Logos;
 use std::ops::Range;

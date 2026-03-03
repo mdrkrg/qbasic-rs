@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod lexer_basic {
-    use qbasic_rs::lexer::*;
-    use qbasic_rs::token::*;
+    use qbasic_rs::core::lexer::*;
+    use qbasic_rs::core::token::*;
 
     #[test]
     fn test_basic_tokenization() {

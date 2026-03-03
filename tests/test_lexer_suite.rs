@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod test_lexer_suite {
-    use qbasic_rs::lexer::*;
-    use qbasic_rs::token::*;
+    use qbasic_rs::core::lexer::*;
+    use qbasic_rs::core::token::*;
     use std::fs;
 
     // Helper function to read test file

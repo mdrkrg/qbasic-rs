@@ -1,10 +1,10 @@
 #[cfg(test)]
 mod test_parser {
     use anyhow::bail;
-    use qbasic_rs::ast::*;
-    use qbasic_rs::lexer::*;
-    use qbasic_rs::parser::*;
-    use qbasic_rs::token::*;
+    use qbasic_rs::core::ast::*;
+    use qbasic_rs::core::lexer::*;
+    use qbasic_rs::core::parser::*;
+    use qbasic_rs::core::token::*;
     use std::collections::VecDeque;
 
     // Helper to parse a single line of BASIC code

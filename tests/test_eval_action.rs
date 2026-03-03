@@ -1,7 +1,7 @@
-use qbasic_rs::ast::*;
-use qbasic_rs::eval::action::Action;
-use qbasic_rs::eval::value::{Context, Value};
-use qbasic_rs::token::{Math, Relational};
+use qbasic_rs::core::ast::*;
+use qbasic_rs::core::eval::action::Action;
+use qbasic_rs::core::eval::value::{Context, Value};
+use qbasic_rs::core::token::{Math, Relational};
 use std::collections::HashMap;
 
 // Helper to create a Context for testing

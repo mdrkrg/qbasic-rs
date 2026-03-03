@@ -1,5 +1,7 @@
-use crate::ast::{BinaryOp, Expr, LiteralValue, UnaryOp};
-use crate::token::{Math, Relational};
+use crate::core::{
+    ast::{BinaryOp, Expr, LiteralValue, UnaryOp},
+    token::{Math, Relational},
+};
 use anyhow::{Result, bail};
 use std::fmt;
 use std::str::FromStr;
@@ -99,12 +101,10 @@ impl Expr {
 
             Expr::Literal(literal) => Ok(Expr::eval_literal(literal)),
 
-            Expr::Variable { name } => {
-                match context.variables.get(name) {
-                    Some(val) => Ok(val.clone()),
-                    None => Ok(Value::Integer(0)),
-                }
-            }
+            Expr::Variable { name } => match context.variables.get(name) {
+                Some(val) => Ok(val.clone()),
+                None => Ok(Value::Integer(0)),
+            },
         }
     }
 

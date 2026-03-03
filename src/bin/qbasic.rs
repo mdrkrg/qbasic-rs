@@ -1,6 +1,6 @@
 use std::{env::args, fs, process::exit};
 
-use qbasic_rs::*;
+use qbasic_rs::core::*;
 
 fn main() {
     let args: Vec<_> = args().collect();

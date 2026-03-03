@@ -1,5 +1,5 @@
 /// The parser for QBasic. It should be input a sequence of Token and output a sequence of Line.
-use crate::{
+use crate::core::{
     ast::{BinaryOp, Expr, Line, LiteralValue, Stmt, UnaryOp},
     token::{Keyword, Math, Relational, Side, Token},
 };
