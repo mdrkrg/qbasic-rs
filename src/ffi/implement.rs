@@ -116,8 +116,7 @@ impl Interpreter {
 
     /// Generate a syntax tree string for a line
     fn generate_syntax_tree(&self, line: &Line) -> String {
-        // TODO: Implement indented print
-        format!("Line {}: {:?}", line.lineno, line.statement)
+        line.format_syntax_tree(&self.inner)
     }
 
     /// Rebuild the interpreter, reset state

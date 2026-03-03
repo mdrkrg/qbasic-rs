@@ -1,4 +1,5 @@
 use crate::core::ast::{Line, Stmt};
+use crate::core::display::StatsProvider;
 use crate::core::eval::{
     action::Action,
     event::{EventQueue, InterpreterEvent},
@@ -303,5 +304,28 @@ impl Interpreter {
                 }
             }
         }
+    }
+}
+
+impl StatsProvider for Interpreter {
+    fn execution_count(&self, lineno: u32) -> u32 {
+        self.line_stats()
+            .get(&lineno)
+            .map_or_else(|| 0, |stat| stat.execution_count)
+    }
+
+    fn if_branch_counts(&self, lineno: u32) -> (u32, u32) {
+        self.line_stats()
+            .get(&lineno)
+            .map_or_else(|| (0, 0), |stat| (stat.if_true_count, stat.if_false_count))
+    }
+
+    fn variable_use_count(&self, name: &str) -> u32 {
+        self.context()
+            .variable_use_counts
+            .borrow()
+            .get(name)
+            .copied()
+            .unwrap_or(0)
     }
 }

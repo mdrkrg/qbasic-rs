@@ -1,20 +1,35 @@
 use qbasic_rs::core::ast::*;
+use qbasic_rs::core::display::StatsProvider;
 use qbasic_rs::core::eval::interpreter::{Interpreter, InterpreterState};
 use qbasic_rs::core::token::{Math, Relational};
 
 mod utils;
-use utils::{binary_expr, create_test_interpreter, int_expr, relational_expr, var_expr};
+use utils::{binary_expr, int_expr, relational_expr, var_expr};
+
+struct MockStats;
+impl StatsProvider for MockStats {
+    fn execution_count(&self, _: u32) -> u32 {
+        0
+    }
+
+    fn if_branch_counts(&self, _: u32) -> (u32, u32) {
+        (0, 0)
+    }
+
+    fn variable_use_count(&self, _: &str) -> u32 {
+        0
+    }
+}
 
 #[test]
 fn test_syntax_tree_rem() {
-    let interpreter = create_test_interpreter();
     let line = Line {
         lineno: 10,
         statement: Stmt::Rem {
             comment: "test comment".to_string(),
         },
     };
-    let tree = interpreter.generate_syntax_tree(&line);
+    let tree = line.format_syntax_tree(&MockStats);
     let expected = r#"10 REM 0
     test comment"#;
     assert_eq!(tree, expected);
@@ -22,14 +37,13 @@ fn test_syntax_tree_rem() {
 
 #[test]
 fn test_syntax_tree_input() {
-    let interpreter = create_test_interpreter();
     let line = Line {
         lineno: 10,
         statement: Stmt::Input {
             name: "x".to_string(),
         },
     };
-    let tree = interpreter.generate_syntax_tree(&line);
+    let tree = line.format_syntax_tree(&MockStats);
     let expected = r#"10 INPUT 0
     x"#;
     assert_eq!(tree, expected);
@@ -37,12 +51,11 @@ fn test_syntax_tree_input() {
 
 #[test]
 fn test_syntax_tree_goto() {
-    let interpreter = create_test_interpreter();
     let line = Line {
         lineno: 10,
         statement: Stmt::Goto { lineno: 100 },
     };
-    let tree = interpreter.generate_syntax_tree(&line);
+    let tree = line.format_syntax_tree(&MockStats);
     let expected = r#"10 GOTO 0
     100"#;
     assert_eq!(tree, expected);
@@ -50,12 +63,11 @@ fn test_syntax_tree_goto() {
 
 #[test]
 fn test_syntax_tree_end() {
-    let interpreter = create_test_interpreter();
     let line = Line {
         lineno: 10,
         statement: Stmt::End,
     };
-    let tree = interpreter.generate_syntax_tree(&line);
+    let tree = line.format_syntax_tree(&MockStats);
     let expected = r#"10 END 0"#;
     assert_eq!(tree, expected);
 }
@@ -63,7 +75,6 @@ fn test_syntax_tree_end() {
 #[test]
 fn test_syntax_tree_let_with_expression() {
     use Math::{Plus, Times};
-    let interpreter = create_test_interpreter();
     // LET m = p + q * t
     let expr = binary_expr(
         var_expr("p"),
@@ -77,7 +88,7 @@ fn test_syntax_tree_let_with_expression() {
             expr,
         },
     };
-    let tree = interpreter.generate_syntax_tree(&line);
+    let tree = line.format_syntax_tree(&MockStats);
     let expected = r#"10 LET = 0
     m 0
     +
@@ -91,7 +102,6 @@ fn test_syntax_tree_let_with_expression() {
 #[test]
 fn test_syntax_tree_print_with_expression() {
     use Math::{Plus, Times};
-    let interpreter = create_test_interpreter();
     let expr = binary_expr(
         var_expr("p"),
         Plus,
@@ -101,7 +111,7 @@ fn test_syntax_tree_print_with_expression() {
         lineno: 10,
         statement: Stmt::Print { expr },
     };
-    let tree = interpreter.generate_syntax_tree(&line);
+    let tree = line.format_syntax_tree(&MockStats);
     let expected = r#"10 PRINT 0
     +
         p
@@ -113,7 +123,6 @@ fn test_syntax_tree_print_with_expression() {
 
 #[test]
 fn test_syntax_tree_if_with_relational() {
-    let interpreter = create_test_interpreter();
     let conditional = relational_expr(var_expr("m"), Relational::Gt, var_expr("max"));
     let line = Line {
         lineno: 10,
@@ -122,7 +131,7 @@ fn test_syntax_tree_if_with_relational() {
             lineno: 50,
         },
     };
-    let tree = interpreter.generate_syntax_tree(&line);
+    let tree = line.format_syntax_tree(&MockStats);
     let expected = r#"10 IF THEN 0 0
     >
         m
@@ -169,7 +178,7 @@ fn test_syntax_tree_statistics_let() {
             expr: int_expr(5),
         },
     };
-    let tree = interpreter.generate_syntax_tree(&line);
+    let tree = line.format_syntax_tree(&interpreter);
 
     // Should show: execution count 1, variable usage count 1 (x used once in PRINT)
     let expected = r#"10 LET = 1
@@ -231,7 +240,7 @@ fn test_syntax_tree_statistics_if() {
             lineno: 50,
         },
     };
-    let tree = interpreter.generate_syntax_tree(&line);
+    let tree = line.format_syntax_tree(&interpreter);
 
     // Should show: execution count 1, true branch count 1, false branch count 0
     let expected = r#"20 IF THEN 1 0
@@ -268,7 +277,7 @@ fn test_syntax_tree_statistics_print() {
         lineno: 10,
         statement: Stmt::Print { expr: int_expr(42) },
     };
-    let tree = interpreter.generate_syntax_tree(&line);
+    let tree = line.format_syntax_tree(&interpreter);
 
     // Should show: execution count 1
     let expected = r#"10 PRINT 1
@@ -323,7 +332,7 @@ fn test_syntax_tree_statistics_goto() {
         lineno: 40,
         statement: Stmt::Goto { lineno: 20 },
     };
-    let tree = interpreter.generate_syntax_tree(&line);
+    let tree = line.format_syntax_tree(&interpreter);
 
     // GOTO executed 3 times (i=0,1,2)
     let expected = r#"40 GOTO 3
@@ -374,7 +383,7 @@ fn test_syntax_tree_statistics_variable_multiple_uses() {
             expr: int_expr(5),
         },
     };
-    let tree = interpreter.generate_syntax_tree(&line);
+    let tree = line.format_syntax_tree(&interpreter);
 
     // Should show: execution count 1, variable usage count 3 (x used 3 times in PRINT)
     let expected = r#"10 LET = 1
@@ -437,7 +446,7 @@ fn test_syntax_tree_statistics_if_false() {
             lineno: 50,
         },
     };
-    let tree = interpreter.generate_syntax_tree(&line);
+    let tree = line.format_syntax_tree(&interpreter);
 
     // Should show: execution count 1, true branch count 0, false branch count 1
     let expected = r#"20 IF THEN 0 1
@@ -482,7 +491,7 @@ fn test_syntax_tree_statistics_rem() {
             comment: "This is a comment".to_string(),
         },
     };
-    let tree = interpreter.generate_syntax_tree(&line);
+    let tree = line.format_syntax_tree(&interpreter);
 
     // Should show: execution count 1
     let expected = r#"10 REM 1
@@ -531,7 +540,7 @@ fn test_syntax_tree_statistics_reset() {
             expr: int_expr(5),
         },
     };
-    let tree = interpreter.generate_syntax_tree(&line);
+    let tree = line.format_syntax_tree(&interpreter);
 
     // After reset, should show: execution count 0, variable usage count 0
     let expected = r#"10 LET = 0
@@ -599,7 +608,7 @@ fn test_syntax_tree_statistics_if_multiple_executions() {
             lineno: 30,
         },
     };
-    let tree = interpreter.generate_syntax_tree(&line);
+    let tree = line.format_syntax_tree(&interpreter);
 
     // Should show: execution count 4, true branch count 3, false branch count 1
     let expected = r#"20 IF THEN 3 1
@@ -658,7 +667,7 @@ fn test_syntax_tree_statistics_goto_multiple_executions() {
         lineno: 40,
         statement: Stmt::Goto { lineno: 20 },
     };
-    let tree = interpreter.generate_syntax_tree(&line);
+    let tree = line.format_syntax_tree(&interpreter);
 
     // GOTO executed 3 times
     let expected = r#"40 GOTO 3
@@ -673,7 +682,7 @@ fn test_syntax_tree_statistics_goto_multiple_executions() {
             lineno: 50,
         },
     };
-    let tree_if = interpreter.generate_syntax_tree(&line_if);
+    let tree_if = line_if.format_syntax_tree(&interpreter);
 
     // IF executed 4 times: 1 true (i=3), 3 false (i=0,1,2)
     let expected_if = r#"20 IF THEN 1 3
@@ -736,7 +745,7 @@ fn test_syntax_tree_statistics_print_multiple_executions() {
             expr: var_expr("i"),
         },
     };
-    let tree = interpreter.generate_syntax_tree(&line);
+    let tree = line.format_syntax_tree(&interpreter);
 
     // PRINT executed 3 times
     let expected = r#"20 PRINT 3
@@ -800,7 +809,7 @@ fn test_syntax_tree_statistics_let_multiple_executions_with_variable_use() {
             expr: binary_expr(var_expr("i"), Math::Times, int_expr(2)),
         },
     };
-    let tree = interpreter.generate_syntax_tree(&line);
+    let tree = line.format_syntax_tree(&interpreter);
 
     // Should show: execution count 3, variable j usage count 0 (j not used)
     // Variable i usage count is tracked separately and shown in LET i syntax tree
@@ -819,7 +828,7 @@ fn test_syntax_tree_statistics_let_multiple_executions_with_variable_use() {
             expr: int_expr(0),
         },
     };
-    let tree_i = interpreter.generate_syntax_tree(&line_i);
+    let tree_i = line_i.format_syntax_tree(&interpreter);
 
     // Should show: execution count 1, variable i usage count 9
     // Breakdown of i usage:
