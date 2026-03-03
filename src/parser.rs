@@ -19,6 +19,8 @@ impl Parser {
             None => bail!("Unexpected EOF"),
         };
         let keyword = match self.advance() {
+            // FIXME: Don't know whether suitable for a REM
+            Some(Token::Comment(comment)) => Keyword::Rem(comment),
             Some(Token::Keyword(keyword)) => keyword,
             Some(token) => bail!("Expected keyword, got {token}"),
             None => bail!("Unexpected EOF"),
